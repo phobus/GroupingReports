@@ -15,6 +15,29 @@
   <script src="../src/js/GList.js"></script>
 
   <script src="dataGenerator.js"></script>
+  <script>
+    var gd = Object.create(GData.prototype);
+    var a2_data = [{
+      id1: 1,
+      colum1: 1,
+      colum1: 10,
+      colum1: 100
+    }, {
+      id1: 1,
+      colum1: 1,
+      colum1: 10,
+      colum1: 100
+    }, {
+      id1: 2,
+      colum1: 1,
+      colum1: 10,
+      colum1: 100
+    }];
+    var g = gd.groupBy(data, function(item) {
+      return item.id1;
+    });
+    console.log(g);
+  </script>
 </body>
 
 </html>
