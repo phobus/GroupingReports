@@ -1,0 +1,17 @@
+.gtable {
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+  /*white-space: nowrap;*/
+  width: 100%;
+  text-align: right;
+}
+.gtable .no-numeric {
+  text-align: left;
+}
+.gtable .hidden {
+  display: none !important;
+}
+.gtable .total, .gtable .sub-total {
+  cursor: pointer;
+}

@@ -10,6 +10,8 @@
 </head>
 
 <body>
+  <div id="gtable"></div>
+  <div id="glist"></div>
   <script src="../src/js/GData.js"></script>
   <script src="../src/js/GTable.js"></script>
   <script src="../src/js/GList.js"></script>
@@ -17,26 +19,57 @@
   <script src="dataGenerator.js"></script>
   <script>
     var gd = Object.create(GData.prototype);
-    var a2_data = [{
-      id1: 1,
-      colum1: 1,
-      colum1: 10,
-      colum1: 100
-    }, {
-      id1: 1,
-      colum1: 1,
-      colum1: 10,
-      colum1: 100
-    }, {
-      id1: 2,
-      colum1: 1,
-      colum1: 10,
-      colum1: 100
-    }];
-    var g = gd.groupBy(data, function(item) {
+
+    var data = dataGenerator.generate([
+      [4, 6],
+      [2, 4],
+      [2, 4]
+    ], function() {
+      return {
+        name: dataGenerator.randomText(),
+        column1: dataGenerator.randomAmount(),
+        column2: dataGenerator.randomAmount(),
+        column3: dataGenerator.randomAmount(),
+        column4: dataGenerator.randomAmount()
+      }
+    });
+    
+    var config = {
+      tableCssClass: 'gtable',
+      granTotal: true,
+      columns: [{
+        name: 'name',
+        alias: 'Description',
+        cssClass: 'no-numeric'
+      }, {
+        name: 'column1',
+        alias: 'column1',
+        aggregate: 'sum'
+      }, {
+        name: 'column2',
+        alias: 'column2',
+        aggregate: 'sum'
+      }, {
+        name: 'column3',
+        alias: 'column3',
+        aggregate: 'sum'
+      }, {
+        name: 'column4',
+        alias: 'column4',
+        aggregate: 'sum'
+      }],
+      grouping: ['txt_id1', 'txt_id2']
+    };
+
+    var gt = new GTable('gtable', config);
+    gt.render(data, function(item) {
       return item.id1;
     });
-    console.log(g);
+
+    var gl = new GList('glist', config);
+    gl.render(data, function(item) {
+      return item.id1;
+    });
   </script>
 </body>
 

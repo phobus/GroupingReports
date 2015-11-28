@@ -11,47 +11,54 @@
     },
 
     randomAmount: function() {
-      return Math.floor(Math.random() * 100000) / 100;
+      var n = Math.floor((Math.random() * (100 - 100000 + 1)) + 100) / 100;
+      return this.randomNumber(0, 99) < 75 ? n : n * -1;
     },
 
-    create: function(args) {
+    randomText: function() {
+      this.arrText = this.arrText || this.loremIpsum.split(' ');
+      var output = [],
+        s = this.randomNumber(2, 4),
+        l = this.arrText.length - 1;
+      for (var i = 0; i < s; i++) {
+        var r = this.randomNumber(0, l);
+        output.push(this.arrText[r]);
+      }
+      output[0] = output[0][0].toUpperCase() + output[0].slice(1);
+      return output.join(' ');
+    },
+    loremIpsum: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    generate: function(args, fn) {
       args = args || [
         [6, 9],
         [10, 18],
         [1, 10]
       ];
-      var data = [],
-        j, k, l,
-        id1 = 0,
-        id2 = 0,
-        id3 = 0,
-        nid1 = this.randomNumber(args[0][0], args[0][1]),
-        nid2,
-        nid3;
-      for (var j = 0; j < nid1; j++) {
-        nid2 = this.randomNumber(args[1][0], args[1][1]);
-        for (var k = 0; k < nid2; k++) {
-          nid3 = this.randomNumber(args[2][0], args[2][1]);;
-          for (var l = 0; l < nid3; l++) {
-            data.push({
-              category: id1,
-              txt_category: 'Category ' + id1,
-              subcategory: id2,
-              txt_subcategory: 'Subcategory ' + id2,
-              product: id3,
-              txt_product: 'Product ' + id3,
-              column1: this.randomAmount(),
-              column2: this.randomAmount(),
-              column3: this.randomAmount(),
-              column4: this.randomAmount()
-            });
-            id3++;
-          }
-          id2++;
-        }
-        id1++;
-      }
+      data = [];
+      this.createNode([], 0, args, data, fn);
       return data;
+    },
+    createNode: function(ids, level, args, data, fn) {
+      if (level < args.length) {
+        var l = this.randomNumber(args[level][0], args[level][1]);
+        for (var i = 0; i < l; i++) {
+          if (ids[level]) {
+            ids[level][0]++;
+          } else {
+            ids[level] = [0, this.randomText()];
+          }
+
+          this.createNode(ids, level + 1, args, data, fn);
+        }
+      } else {
+        var obj = fn(),
+          l = ids.length;
+        for (var i = 0; i < l; i++) {
+          obj['id' + i] = ids[i][0];
+          obj['txt_id' + i] = ids[i][1];
+        }
+        data.push(obj);
+      }
     }
   }
 
