@@ -4,6 +4,8 @@
   var GData = function() {}
   window['GData'] = GData;
 
-  GData.prototype = {}
+  GData.prototype = {
+    
+  }
 
 })(window, document);
