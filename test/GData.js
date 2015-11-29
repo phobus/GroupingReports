@@ -28,28 +28,31 @@
       colum2: 10,
       colum3: 100
     }];
-    var a2_group = [
-      [{
-        'colum1': 1,
-        'colum2': 10,
-        'colum3': 100,
-        'id1': 1
+    var a2_group = [{
+      "grouping": "id1",
+      "key": 1,
+      "values": [{
+        "colum1": 1,
+        "colum2": 10,
+        "colum3": 100,
+        "id1": 1
       }, {
-        'colum1': 1,
-        'colum2': 10,
-        'colum3': 100,
-        'id1': 1
-      }],
-      [{
-        'colum1': 1,
-        'colum2': 10,
-        'colum3': 100,
-        'id1': 2
+        "colum1": 1,
+        "colum2": 10,
+        "colum3": 100,
+        "id1": 1
       }]
-    ];
-    assert.deepEqual(gd.groupBy(a2_data, function(item) {
-      return item.id1;
-    }), a2_group, 'GData.groupBy function(item) {return item.id1;}');
+    }, {
+      "grouping": "id1",
+      "key": 2,
+      "values": [{
+        "colum1": 1,
+        "colum2": 10,
+        "colum3": 100,
+        "id1": 2
+      }]
+    }];
+    assert.deepEqual(gd.groupBy(a2_data, 'id1'), a2_group, 'GData.groupBy "id1"');
   });
 
 })(window, document);

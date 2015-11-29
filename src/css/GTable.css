@@ -2,16 +2,25 @@
   border-collapse: collapse;
   border-spacing: 0;
   table-layout: fixed;
-  /*white-space: nowrap;*/
+  white-space: nowrap;
   width: 100%;
   text-align: right;
 }
-.gtable .no-numeric {
-  text-align: left;
+.gtable tr {
+  border-top: 1px solid rgba(0, 0, 0, .12);
+  border-bottom: 1px solid rgba(0, 0, 0, .12);
 }
-.gtable .hidden {
-  display: none !important;
+.gtable th, .gtable td {
+  padding: 12px 18px;
+  overflow: hidden;
+}
+.gtable th {
+  color: rgba(0, 0, 0, .54);
 }
 .gtable .total, .gtable .sub-total {
   cursor: pointer;
+  font-weight: 500;
+}
+.gtable .no-numeric {
+  text-align: left;
 }

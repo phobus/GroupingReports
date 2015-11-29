@@ -18,8 +18,9 @@
     },
 
     groupBy: function(data, column) {
-      var groups = {};
-      for (var i = 0; i < data.length; i++) {
+      var groups = {},
+        l = data.length;
+      for (var i = 0; i < l; i++) {
         //var group = JSON.stringify(fn(data[i]));
         var group = data[i][column];
         if (group in groups) {
@@ -34,18 +35,47 @@
       }
       return this.arrayFromObject(groups);
     },
-
+    groupAndAggregateBy: function(data, column, aggregate) {
+      var a, groups = {},
+        l = data.length,
+        s = aggregate.length;
+      for (var i = 0; i < l; i++) {
+        var group = JSON.stringify(data[i][column]);
+        if (group in groups) {
+          for (var j = 0; j < s; j++) {
+            a = aggregate[j].name;
+            //buffer[a] += data[i][a];
+            //http://stackoverflow.com/questions/10473994/javascript-adding-decimal-numbers-issue
+            groups[group].aggregate[a] = +(groups[group].aggregate[a] + data[i][a]).toFixed(2);
+          }
+          groups[group].values.push(data[i]);
+        } else {
+          //var buffer = [];
+          var buffer = {};
+          for (var j = 0; j < s; j++) {
+            a = aggregate[j].name;
+            buffer[a] = data[i][a];
+          }
+          groups[group] = {
+            grouping: column,
+            key: data[i][column],
+            values: [data[i]],
+            aggregate: buffer
+          };
+        }
+      }
+      return this.arrayFromObject(groups);
+    },
     grouping: function(data, grouping, aggregate) {
       return {
-        //grouping: undefined,
-        //column: undefined,
+        aggregate: undefined,
         key: 'Total',
         values: this._recursiveGrouping(data, grouping, aggregate, 0)
       };
     },
 
     _recursiveGrouping: function(data, grouping, aggregate, index) {
-      var result = this.groupBy(data, grouping[index]),
+      var result = this.groupAndAggregateBy(data, grouping[index], aggregate),
         l = result.length;
       if (index < grouping.length - 1) {
         for (var i = 0; i < l; i++) {

@@ -4,14 +4,36 @@
 <head>
   <meta charset="utf-8">
   <title>Demo</title>
+  <link rel="stylesheet" href="../src/css/layout.css">
   <link rel="stylesheet" href="../src/css/GCommon.css">
   <link rel="stylesheet" href="../src/css/GTable.css">
   <link rel="stylesheet" href="../src/css/GList.css">
 </head>
 
 <body>
-  <div id="gtable"></div>
-  <div id="glist"></div>
+  <div id="wrapper">
+    <header class="header">
+      <div class="row">
+        <span class="title">Title</span>
+        <div class="spacer"></div>
+        <span class="title">O</span>
+      </div>
+    </header>
+    <div class="ribbon"></div>
+    <div class="container">
+      <div class="content shadow-4dp">
+        <div class="row">
+          <span class="title">231 - Ullamco in enim incididunt</span>
+          <div class="spacer"></div>
+          <span class="title">31/01/2017</span>
+        </div>
+        <main>
+          <div id="gtable"></div>
+        </main>
+      </div>
+    </div>
+    <div class="footer"></div>
+  </div>
   <script src="../src/js/GData.js"></script>
   <script src="../src/js/GTable.js"></script>
   <script src="../src/js/GList.js"></script>
@@ -26,21 +48,21 @@
       [2, 4]
     ], function() {
       return {
-        name: dataGenerator.randomText(),
+        //name: dataGenerator.randomText(),
         column1: dataGenerator.randomAmount(),
         column2: dataGenerator.randomAmount(),
         column3: dataGenerator.randomAmount(),
         column4: dataGenerator.randomAmount()
       }
     });
-    
     var config = {
-      tableCssClass: 'gtable',
+      tableCssClass: 'gtable shadow-2dp',
       granTotal: true,
       columns: [{
-        name: 'name',
-        alias: 'Description',
-        cssClass: 'no-numeric'
+        name: 'txt_id2',
+        alias: 'txt_id2',
+        cssClass: 'no-numeric',
+        grouping: true
       }, {
         name: 'column1',
         alias: 'column1',
@@ -58,7 +80,7 @@
         alias: 'column4',
         aggregate: 'sum'
       }],
-      grouping: ['txt_id1', 'txt_id2']
+      grouping: ['txt_id0', 'txt_id1']
     };
 
     var gt = new GTable('gtable', config);

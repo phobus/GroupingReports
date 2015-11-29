@@ -44,6 +44,7 @@
         for (var i = 0; i < l; i++) {
           if (ids[level]) {
             ids[level][0]++;
+            ids[level][1] = this.randomText();
           } else {
             ids[level] = [0, this.randomText()];
           }

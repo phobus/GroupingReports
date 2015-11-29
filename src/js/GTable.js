@@ -17,8 +17,15 @@
 
   GTable.prototype = {
     render: function(data, fn) {
+      this._aggregate = this.columns.filter(function(o, i) {
+        if (o.aggregate) {
+          return true;
+        }
+        return false;
+      });
+
       var gd = Object.create(GData.prototype);
-      data = gd.grouping(data, this.grouping);
+      data = gd.grouping(data, this.grouping, this._aggregate);
 
       var table = this.renderTable(data);
 
@@ -29,18 +36,21 @@
         thead = document.createElement('thead'),
         tbody = document.createElement('tbody');
 
-      table.className = this.tableCssClass || 'gtable';
+      table.className = this.tableCssClass;
 
       //create table header
       var cell, row = document.createElement('tr'),
         l = this.columns.length,
         column;
+      var ctrl = document.createElement('td');
+      row.appendChild(ctrl);
+      ctrl.style.width = "30px";
       for (var i = 0; i < l; i++) {
         column = this.columns[i];
         cell = document.createElement('th');
         cell.innerHTML = column.alias;
         if (column.cssClass) {
-          cell.className = column.cssClass;
+          cell.classList.add(column.cssClass);
         }
         row.appendChild(cell);
       }
@@ -54,27 +64,24 @@
       return table;
     },
     renderDataRow: function(tbody, node) {
-      this._aggregate = this.columns.filter(function(o, i) {
-          if(o.aggregate){
-            return true;
-          }
-          return false;
-      });
-
+      var cell, row = document.createElement('tr'),
+        column, l = this.columns.length;
+      var ctrl = document.createElement('td');
+      row.appendChild(ctrl);
       if (node.values) {
+        row.classList.add('total');
         // grouping rows
-        var cell, row = document.createElement('tr'),
-          l = this._aggregate.length;
-
-        // grouping key cell
-        cell = document.createElement('td');
-        cell.innerHTML = node.key;
-        cell.className = 'no-numeric';
-        row.appendChild(cell);
-
         for (var i = 0; i < l; i++) {
+          column = this.columns[i];
           cell = document.createElement('td');
-          cell.innerHTML = node.aggregate ? node.aggregate[this._aggregate[i]] : '';
+          if (column.aggregate && node.aggregate) {
+            cell.innerHTML = node.aggregate[column.name];
+          } else {
+            cell.innerHTML = node.key;
+          }
+          if (column.cssClass) {
+            cell.classList.add(column.cssClass);
+          }
           row.appendChild(cell);
         }
         // grouping rows event
@@ -88,15 +95,15 @@
           this.renderDataRow(tbody, node.values[k]);
         }
       } else {
-        var cell, row = document.createElement('tr'),
-          l = this.columns.length;
+        // Data rows
         for (var i = 0; i < l; i++) {
+          column = this.columns[i];
           cell = document.createElement('td');
-          cell.innerHTML = node[this.columns[i].name];
-          row.appendChild(cell);
-          if (i == 0) {
-            cell.className = 'no-numeric';
+          cell.innerHTML = node[column.name];
+          if (column.cssClass) {
+            cell.classList.add(column.cssClass);
           }
+          row.appendChild(cell);
         }
         tbody.appendChild(row);
       }
