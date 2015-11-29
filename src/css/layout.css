@@ -11,9 +11,12 @@ html, body {
 .header .row {
   height: 64px;
   padding: 0 40px;
+  -webkit-align-items: center;
+  align-items: center;
 }
 .title {
   font-size: 20px;
+  line-height: 20px;
   color: #424242;
 }
 .ribbon {
@@ -25,15 +28,17 @@ html, body {
   margin-top: -33vh;
   padding-bottom: 100px;
 }
+.content.content-full {
+  padding: 40px 20px;
+  width: calc(100% - 40px);
+}
 .content {
   border-radius: 2px;
   background-color: #FFF;
-  width: calc(100% - 40px);
-  /*width: 67%;*/
+  width: 66%;
   margin: 0 auto;
   box-sizing: border-box;
-  /*padding: 80px 56px;*/
-  padding: 40px 20px;
+  padding: 80px 56px;
   margin-bottom: 80px;
 }
 .content .row {
@@ -51,6 +56,16 @@ html, body {
 @media screen and (max-width: 1024px) {
   .header .row {
     height: 56px;
+    padding: 0 20px;
   }
-
+  .content.content-full {
+    width: calc(100% - 20px);
+    padding: 40px 10px;
+  }
+}
+@media (max-width: 839px) {
+  .content {
+    width: calc(100% - 20px);
+    padding: 40px 10px;
+  }
 }

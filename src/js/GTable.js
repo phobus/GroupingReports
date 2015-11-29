@@ -16,14 +16,10 @@
   window['GTable'] = GTable;
 
   GTable.prototype = {
-    render: function(data, fn) {
+    render: function(data) {
       this._aggregate = this.columns.filter(function(o, i) {
-        if (o.aggregate) {
-          return true;
-        }
-        return false;
+        return o.aggregate || false;
       });
-
       var gd = Object.create(GData.prototype);
       data = gd.grouping(data, this.grouping, this._aggregate);
 
@@ -34,27 +30,16 @@
     renderTable: function(data) {
       var table = document.createElement('table'),
         thead = document.createElement('thead'),
-        tbody = document.createElement('tbody');
+        tbody = document.createElement('tbody'),
+        header;
 
       table.className = this.tableCssClass;
 
       //create table header
-      var cell, row = document.createElement('tr'),
-        l = this.columns.length,
-        column;
-      var ctrl = document.createElement('td');
-      row.appendChild(ctrl);
-      ctrl.style.width = "30px";
-      for (var i = 0; i < l; i++) {
-        column = this.columns[i];
-        cell = document.createElement('th');
-        cell.innerHTML = column.alias;
-        if (column.cssClass) {
-          cell.classList.add(column.cssClass);
-        }
-        row.appendChild(cell);
-      }
-      thead.appendChild(row);
+      header = this.createRow(null, this.columns, 'th', function(i, column, data) {
+        return column.alias;
+      })
+      thead.appendChild(header);
       table.appendChild(thead);
 
       //create table body
@@ -69,21 +54,14 @@
       var ctrl = document.createElement('td');
       row.appendChild(ctrl);
       if (node.values) {
-        row.classList.add('total');
-        // grouping rows
-        for (var i = 0; i < l; i++) {
-          column = this.columns[i];
-          cell = document.createElement('td');
+        row = this.createRow(node, this.columns, 'td', function(i, column, data) {
           if (column.aggregate && node.aggregate) {
-            cell.innerHTML = node.aggregate[column.name];
+            return node.aggregate[column.name];
           } else {
-            cell.innerHTML = node.key;
+            return node.key;
           }
-          if (column.cssClass) {
-            cell.classList.add(column.cssClass);
-          }
-          row.appendChild(cell);
-        }
+        });
+        row.classList.add('total');
         // grouping rows event
         row.addEventListener('click', this.dataRowClickHandler.bind(this));
         row.dataset.grouping = node.grouping;
@@ -96,17 +74,29 @@
         }
       } else {
         // Data rows
-        for (var i = 0; i < l; i++) {
-          column = this.columns[i];
-          cell = document.createElement('td');
-          cell.innerHTML = node[column.name];
-          if (column.cssClass) {
-            cell.classList.add(column.cssClass);
-          }
-          row.appendChild(cell);
-        }
+        row = this.createRow(node, this.columns, 'td', function(i, column, data) {
+          return data[column.name]
+        });
         tbody.appendChild(row);
       }
+    },
+    createRow: function(data, columns, tag, fn) {
+      var cell, row = document.createElement('tr'),
+        l = columns.length;
+
+      var ctrl = document.createElement('td');
+      row.appendChild(ctrl);
+      ctrl.style.width = "20px";
+
+      for (var i = 0; i < l; i++) {
+        cell = document.createElement(tag);
+        cell.innerHTML = fn(i, columns[i], data);
+        if (columns[i].cssClass) {
+          cell.classList.add(columns[i].cssClass);
+        }
+        row.appendChild(cell);
+      }
+      return row;
     },
     dataRowClickHandler: function(event) {
       var row = event.target.parentNode.nextSibling;
