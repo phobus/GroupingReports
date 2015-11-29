@@ -10,6 +10,9 @@
   border-top: 1px solid rgba(0, 0, 0, .12);
   border-bottom: 1px solid rgba(0, 0, 0, .12);
 }
+.gtable tbody tr:hover {
+  background-color: #eee;
+}
 .gtable th, .gtable td {
   padding: 12px 18px;
   overflow: hidden;
@@ -19,7 +22,7 @@
 }
 .gtable .total, .gtable .sub-total {
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 700;
 }
 .gtable .no-numeric {
   text-align: left;
