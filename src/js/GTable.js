@@ -16,6 +16,19 @@
   window['GTable'] = GTable;
 
   GTable.prototype = {
+    _onCreateRowHeader: function(i, column, data) {
+      return column.alias;
+    },
+    _onCreateRowData: function(i, column, data) {
+      return data[column.name]
+    },
+    _onCreateRowGroup: function(i, column, data) {
+      if (column.aggregate && data.aggregate) {
+        return data.aggregate[column.name];
+      } else {
+        return data.key;
+      }
+    },
     render: function(data) {
       this._aggregate = this.columns.filter(function(o, i) {
         return o.aggregate || false;
@@ -30,55 +43,41 @@
     renderTable: function(data) {
       var table = document.createElement('table'),
         thead = document.createElement('thead'),
-        tbody = document.createElement('tbody'),
-        header;
+        tbody = document.createElement('tbody');
 
       table.className = this.tableCssClass;
+      table.appendChild(thead);
+      table.appendChild(tbody);
 
       //create table header
-      header = this.createRow(null, this.columns, 'th', function(i, column, data) {
-        return column.alias;
-      })
-      thead.appendChild(header);
-      table.appendChild(thead);
+      thead.appendChild(this.createRow(null, this.columns, 'th', this._onCreateRowHeader));
 
       //create table body
       this.renderDataRow(tbody, data);
-      table.appendChild(tbody);
 
       return table;
     },
     renderDataRow: function(tbody, node) {
-      var cell, row = document.createElement('tr'),
-        column, l = this.columns.length;
-      var ctrl = document.createElement('td');
-      row.appendChild(ctrl);
+      var row;
       if (node.values) {
-        row = this.createRow(node, this.columns, 'td', function(i, column, data) {
-          if (column.aggregate && node.aggregate) {
-            return node.aggregate[column.name];
-          } else {
-            return node.key;
-          }
-        });
+        row = this.createRow(node, this.columns, 'td', this._onCreateRowGroup);
         row.classList.add('total');
+
         // grouping rows event
         row.addEventListener('click', this.dataRowClickHandler.bind(this));
         row.dataset.grouping = node.grouping;
-        tbody.appendChild(row);
 
         // grouping values
-        l = node.values.length;
+        var l = node.values.length;
         for (var k = 0; k < l; k++) {
           this.renderDataRow(tbody, node.values[k]);
         }
       } else {
         // Data rows
-        row = this.createRow(node, this.columns, 'td', function(i, column, data) {
-          return data[column.name]
-        });
-        tbody.appendChild(row);
+        row = this.createRow(node, this.columns, 'td', this._onCreateRowData);
+
       }
+      tbody.appendChild(row);
     },
     createRow: function(data, columns, tag, fn) {
       var cell, row = document.createElement('tr'),
