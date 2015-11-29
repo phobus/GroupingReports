@@ -17,7 +17,7 @@
 
   GTable.prototype = {
     Constant: {
-      TREE_PADDING: 12,
+      TREE_PADDING: 24,
       TREE_PADDING_U: "px"
     },
     CssClasses: {
@@ -80,6 +80,7 @@
         // grouping rows event
         row.addEventListener('click', this.dataRowClickHandler.bind(this));
         row.dataset.grouping = data.grouping;
+        row.dataset.lvl = lvl;
         tbody.appendChild(row);
 
         // grouping values
@@ -121,38 +122,56 @@
         }
         row.appendChild(cell);
       }
-      //tree ctrl
-      /*var ctrl = document.createElement('span');
-      ctrl.classList.add(this.CssClasses.CTRL);
-      ctrl.classList.add(this.CssClasses.ARROW_BOTTOM);
-      row.firstChild.insertBefore(ctrl, row.firstChild.childNodes[0]);*/
 
       return row;
     },
+
     dataRowClickHandler: function(event) {
       // element.closest(selectors); ie??? Not supported
       // console.log(event.target.closest('tr'));
       // https://github.com/jonathantneal/closest
-      var row = event.target.closest('tr'),
-        ctrl = row.getElementsByClassName('ctrl')[0],
-        nextRow = row.nextSibling;
-      if (nextRow) {
+      var row = event.target.closest('tr');
+      if (row) {
+        if (row.dataset.collapse) {
+          delete row.dataset.collapse;
+          this.expandRows(row);
+        } else {
+          row.dataset.collapse = true;
+          this.collapseRows(row);
+        }
+        var ctrl = row.getElementsByClassName('ctrl')[0];
         ctrl.classList.toggle(this.CssClasses.ARROW_BOTTOM);
         ctrl.classList.toggle(this.CssClasses.ARROW_RIGHT);
-
-        var data = row.dataset;
-        var collapse = !nextRow.classList.contains(this.CssClasses.HIDDEN);
-        while (nextRow) {
-          if (nextRow.dataset.grouping == data.grouping) {
-            break;
-          }
-          if (collapse) {
-            nextRow.classList.add(this.CssClasses.HIDDEN);
-          } else {
-            nextRow.classList.remove(this.CssClasses.HIDDEN);
-          }
-          nextRow = nextRow.nextSibling;
+      }
+    },
+    collapseRows: function(row) {
+      var nextRow = row.nextSibling;
+      while (nextRow) {
+        console.log(nextRow.dataset.lvl, row.dataset.lvl, nextRow.dataset.lvl > row.dataset.lvl);
+        if (nextRow.dataset.lvl && nextRow.dataset.lvl <= row.dataset.lvl) {
+          break;
         }
+        nextRow.classList.add(this.CssClasses.HIDDEN);
+        nextRow = nextRow.nextSibling;
+      }
+    },
+    expandRows: function(row) {
+      var nextRow = row.nextSibling,
+        data = row.dataset,
+        skip = false;
+      while (nextRow && nextRow.dataset.grouping != data.grouping) {
+        if (nextRow.dataset.grouping) {
+          if (nextRow.dataset.collapse) {
+            nextRow.classList.remove(this.CssClasses.HIDDEN);
+            skip = true;
+          } else {
+            skip = false;
+          }
+        }
+        if (!skip) {
+          nextRow.classList.remove(this.CssClasses.HIDDEN);
+        }
+        nextRow = nextRow.nextSibling;
       }
     }
   }

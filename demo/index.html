@@ -32,7 +32,9 @@
         </main>
       </div>
     </div>
-    <div class="footer"></div>
+    <div class="footer">
+      <a href="https://github.com/phobus/HtmlBuilder" target="_blank">https://github.com/phobus/HtmlBuilder</a>
+    </div>
   </div>
   <script src="../src/js/closest.js"></script>
   <script src="../src/js/GData.js"></script>
@@ -42,9 +44,9 @@
   <script src="dataGenerator.js"></script>
   <script>
     var data = dataGenerator.generate([
-      [1, 2],
-      [1, 2],
-      [1, 2]
+      [2, 4],
+      [2, 2],
+      [2, 2]
     ], function() {
       return {
         //name: dataGenerator.randomText(),
@@ -74,10 +76,6 @@
         name: 'column3',
         alias: 'column3',
         aggregate: 'sum'
-      }, {
-        name: 'column4',
-        alias: 'column4',
-        aggregate: 'sum'
       }],
       grouping: ['txt_id0', 'txt_id1']
     };
@@ -91,6 +89,19 @@
     gl.render(data, function(item) {
       return item.id1;
     });
+
+    /*var gd = Object.create(GData.prototype);
+    var aggregate = [{
+      name: 'column1',
+      aggregate: 'sum'
+    }, {
+      name: 'column2',
+      aggregate: 'sum'
+    }, {
+      name: 'column3',
+      aggregate: 'sum'
+    }];
+    var r = gd.groupAndAggregateBy(data, 'id1', aggregate);*/
   </script>
 </body>
 

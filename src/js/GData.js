@@ -47,6 +47,7 @@
             //buffer[a] += data[i][a];
             //http://stackoverflow.com/questions/10473994/javascript-adding-decimal-numbers-issue
             groups[group].aggregate[a] = +(groups[group].aggregate[a] + data[i][a]).toFixed(2);
+
           }
           groups[group].values.push(data[i]);
         } else {
@@ -69,6 +70,7 @@
     grouping: function(data, grouping, aggregate) {
       return {
         aggregate: undefined,
+        grouping: '__** {{ALL}} **__',
         key: 'Total',
         values: this._recursiveGrouping(data, grouping, aggregate, 0)
       };

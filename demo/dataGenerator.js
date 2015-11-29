@@ -12,7 +12,8 @@
 
     randomAmount: function() {
       var n = Math.floor((Math.random() * (100 - 100000 + 1)) + 100) / 100;
-      return this.randomNumber(0, 99) < 75 ? n : n * -1;
+
+      return this.randomNumber(0, 99) > 75 ? n : n * -1;
     },
 
     randomText: function() {
