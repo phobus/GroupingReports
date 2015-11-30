@@ -45,8 +45,8 @@
   <script>
     var data = dataGenerator.generate([
       [6, 8],
-      [4, 6],
-      [2, 4]
+      [8, 12],
+      [1, 4]
     ], function() {
       return {
         //name: dataGenerator.randomText(),
@@ -76,8 +76,19 @@
         name: 'column3',
         alias: 'column3',
         aggregate: 'sum'
+      }, {
+        name: 'column4',
+        alias: 'column4',
+        aggregate: 'sum'
+      }, {
+        virtual: true,
+        name: 'virtual1',
+        alias: 'virtual1',
+        fn: function(columns) {
+          return (columns.column3 / columns.column4) * 100;
+        }
       }],
-      grouping: ['txt_id0', 'txt_id1']
+      groupBy: ['txt_id0', 'txt_id1']
     };
 
     var gt = new GTable('gtable', config);
@@ -89,19 +100,6 @@
     gl.render(data, function(item) {
       return item.id1;
     });
-
-    /*var gd = Object.create(GData.prototype);
-    var aggregate = [{
-      name: 'column1',
-      aggregate: 'sum'
-    }, {
-      name: 'column2',
-      aggregate: 'sum'
-    }, {
-      name: 'column3',
-      aggregate: 'sum'
-    }];
-    var r = gd.groupAndAggregateBy(data, 'id1', aggregate);*/
   </script>
 </body>
 

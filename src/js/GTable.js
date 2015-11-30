@@ -11,47 +11,55 @@
 
     this.columns = config.columns || {};
 
-    this.grouping = config.grouping || [];
+    this.groupBy = config.groupBy || [];
   }
   window['GTable'] = GTable;
 
   GTable.prototype = {
+
     Constant: {
       TREE_PADDING: 24,
       TREE_PADDING_U: "px"
     },
+
     CssClasses: {
-      TABLE: 'gtable',
+      TABLE: 'gtable shadow-2dp',
       HIDDEN: 'hidden',
       TOTAL: 'total',
-      CTRL: 'ctrl',
+      CONTROL: 'control',
       ARROW_BOTTOM: 'arrow-bottom',
       ARROW_RIGHT: 'arrow-right'
     },
+
     _onCreateCellHeader: function(i, column, data) {
       return column.alias;
     },
+
     _onCreateCellData: function(i, column, data) {
       return data[column.name]
     },
+
     _onCreateCellGroup: function(i, column, data) {
       if (column.aggregate && data.aggregate) {
+        return data.aggregate[column.name];
+      } else if (column.virtual) {
         return data.aggregate[column.name];
       } else {
         return data.key;
       }
     },
+
     render: function(data) {
-      this._aggregate = this.columns.filter(function(o, i) {
-        return o.aggregate || false;
+      var aggregate = this.columns.filter(function(o, i) {
+        return o.aggregate || o.virtual || false;
       });
+
       var gd = Object.create(GData.prototype);
-      data = gd.grouping(data, this.grouping, this._aggregate);
-
+      data = gd.grouping(data, this.groupBy, aggregate);
       var table = this.renderTable(data);
-
       this.container.appendChild(table);
     },
+
     renderTable: function(data) {
       var table = document.createElement('table'),
         thead = document.createElement('thead'),
@@ -70,49 +78,47 @@
 
       return table;
     },
-    renderDataRow: function(tbody, data, lvl) {
+
+    renderDataRow: function(tbody, data, level) {
       var row;
       if (data.values) {
-        // grouping rows
-        row = this.createRow(data, this.columns, lvl, this._onCreateCellGroup, lvl);
+        // groupBy rows
+        row = this.createRow(data, this.columns, level, this._onCreateCellGroup, level);
         row.classList.add(this.CssClasses.TOTAL);
 
-        // grouping rows event
+        // groupBy rows event
         row.addEventListener('click', this.dataRowClickHandler.bind(this));
-        //row.dataset.grouping = data.grouping;
-        row.dataset.lvl = lvl;
+        row.dataset.level = level;
         tbody.appendChild(row);
 
-        // grouping values
-        var l = data.values.length;
-        for (var k = 0; k < l; k++) {
-          this.renderDataRow(tbody, data.values[k], lvl + 1);
+        // groupBy values
+        for (var k = 0, l = data.values.length; k < l; k++) {
+          this.renderDataRow(tbody, data.values[k], level + 1);
         }
       } else {
         // Data rows
-        row = this.createRow(data, this.columns, lvl, this._onCreateCellData);
+        row = this.createRow(data, this.columns, level, this._onCreateCellData);
         tbody.appendChild(row);
       }
-
     },
-    createRow: function(data, columns, lvl, fn) {
+
+    createRow: function(data, columns, level, fn) {
       var row = document.createElement('tr'),
-        ctrl = document.createElement('span'),
-        l = columns.length,
-        s = this.grouping.length,
-        w = lvl * this.Constant.TREE_PADDING + this.Constant.TREE_PADDING_U,
-        tag = lvl ? 'td' : 'th',
+        control = document.createElement('span'),
+        groupByLength = this.groupBy.length,
+        cssPadding = level * this.Constant.TREE_PADDING + this.Constant.TREE_PADDING_U,
+        tag = level ? 'td' : 'th',
         cell, text;
 
-      for (var i = 0; i < l; i++) {
+      for (var i = 0, l = columns.length; i < l; i++) {
         cell = document.createElement(tag);
-        if (i == 0 && lvl >= 0) {
-          ctrl.classList.add(this.CssClasses.CTRL);
-          if (lvl <= s) {
-            ctrl.classList.add(this.CssClasses.ARROW_BOTTOM);
+        if (i == 0 && level >= 0) {
+          control.classList.add(this.CssClasses.CONTROL);
+          if (level <= groupByLength) {
+            control.classList.add(this.CssClasses.ARROW_BOTTOM);
           }
-          ctrl.style['padding-left'] = w;
-          cell.appendChild(ctrl);
+          control.style['padding-left'] = cssPadding;
+          cell.appendChild(control);
         }
         text = document.createTextNode(fn(i, columns[i], data));
         cell.appendChild(text);
@@ -139,16 +145,15 @@
           row.dataset.collapse = true;
           this.collapseRows(row);
         }
-        var ctrl = row.getElementsByClassName('ctrl')[0];
-        ctrl.classList.toggle(this.CssClasses.ARROW_BOTTOM);
-        ctrl.classList.toggle(this.CssClasses.ARROW_RIGHT);
+        var control = row.getElementsByClassName('control')[0];
+        control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
+        control.classList.toggle(this.CssClasses.ARROW_RIGHT);
       }
     },
     collapseRows: function(row) {
       var nextRow = row.nextSibling;
       while (nextRow) {
-        if (nextRow.dataset.lvl && nextRow.dataset.lvl <= row.dataset.lvl) {
-          console.log(nextRow.dataset.lvl, row.dataset.lvl, nextRow.dataset.lvl <= row.dataset.lvl);
+        if (nextRow.dataset.level && nextRow.dataset.level <= row.dataset.level) {
           break;
         }
         nextRow.classList.add(this.CssClasses.HIDDEN);
@@ -159,17 +164,25 @@
       var nextRow = row.nextSibling,
         data = row.dataset,
         skip = false,
-        skipLvl = 9999;
+        skipLevel;
+
       while (nextRow) {
-        if (nextRow.dataset.lvl && nextRow.dataset.lvl <= skipLvl) {
-          if (nextRow.dataset.collapse) {
-            nextRow.classList.remove(this.CssClasses.HIDDEN);
-            skip = true;
-            skipLvl = nextRow.dataset.lvl;
-          } else {
-            skip = false;
+        if (nextRow.dataset.level) {
+          if (nextRow.dataset.level <= row.dataset.level) {
+            break;
+          }
+
+          if (skipLevel === undefined || nextRow.dataset.level <= skipLevel) {
+            if (nextRow.dataset.collapse) {
+              nextRow.classList.remove(this.CssClasses.HIDDEN);
+              skip = true;
+              skipLevel = nextRow.dataset.level;
+            } else {
+              skip = false;
+            }
           }
         }
+
         if (!skip) {
           nextRow.classList.remove(this.CssClasses.HIDDEN);
         }

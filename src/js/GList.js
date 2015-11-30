@@ -6,8 +6,8 @@
 
   GList.prototype = {
     render: function(data, fn) {
-      var gd = Object.create(GData.prototype);
-      data = gd.groupBy(data, fn);
+      //var gd = Object.create(GData.prototype);
+      //data = gd.groupBy(data, fn);
       var ul = document.createElement('ul');
     }
   }
