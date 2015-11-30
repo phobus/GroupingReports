@@ -79,7 +79,7 @@
 
         // grouping rows event
         row.addEventListener('click', this.dataRowClickHandler.bind(this));
-        row.dataset.grouping = data.grouping;
+        //row.dataset.grouping = data.grouping;
         row.dataset.lvl = lvl;
         tbody.appendChild(row);
 
@@ -147,8 +147,8 @@
     collapseRows: function(row) {
       var nextRow = row.nextSibling;
       while (nextRow) {
-        console.log(nextRow.dataset.lvl, row.dataset.lvl, nextRow.dataset.lvl > row.dataset.lvl);
         if (nextRow.dataset.lvl && nextRow.dataset.lvl <= row.dataset.lvl) {
+          console.log(nextRow.dataset.lvl, row.dataset.lvl, nextRow.dataset.lvl <= row.dataset.lvl);
           break;
         }
         nextRow.classList.add(this.CssClasses.HIDDEN);
@@ -158,12 +158,14 @@
     expandRows: function(row) {
       var nextRow = row.nextSibling,
         data = row.dataset,
-        skip = false;
-      while (nextRow && nextRow.dataset.grouping != data.grouping) {
-        if (nextRow.dataset.grouping) {
+        skip = false,
+        skipLvl = 9999;
+      while (nextRow) {
+        if (nextRow.dataset.lvl && nextRow.dataset.lvl <= skipLvl) {
           if (nextRow.dataset.collapse) {
             nextRow.classList.remove(this.CssClasses.HIDDEN);
             skip = true;
+            skipLvl = nextRow.dataset.lvl;
           } else {
             skip = false;
           }
