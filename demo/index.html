@@ -4,10 +4,17 @@
 <head>
   <meta charset="utf-8">
   <title>Demo</title>
+
   <link rel="stylesheet" href="../src/css/layout.css">
   <link rel="stylesheet" href="../src/css/GCommon.css">
   <link rel="stylesheet" href="../src/css/GTable.css">
   <link rel="stylesheet" href="../src/css/GList.css">
+
+  <style>
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 
 <body>
@@ -36,26 +43,12 @@
       <a href="https://github.com/phobus/HtmlBuilder" target="_blank">https://github.com/phobus/HtmlBuilder</a>
     </div>
   </div>
-  <script src="../src/js/closest.js"></script>
   <script src="../src/js/GData.js"></script>
   <script src="../src/js/GTable.js"></script>
   <script src="../src/js/GList.js"></script>
 
   <script src="dataGenerator.js"></script>
   <script>
-    var data = dataGenerator.generate([
-      [6, 8],
-      [8, 12],
-      [1, 4]
-    ], function() {
-      return {
-        //name: dataGenerator.randomText(),
-        column1: dataGenerator.randomAmount(),
-        column2: dataGenerator.randomAmount(),
-        column3: dataGenerator.randomAmount(),
-        column4: dataGenerator.randomAmount()
-      }
-    });
     var config = {
       tableCssClass: 'gtable shadow-2dp',
       granTotal: true,
@@ -92,14 +85,32 @@
     };
 
     var gt = new GTable('gtable', config);
-    gt.render(data, function(item) {
-      return item.id1;
-    });
+    //gt.render(data);
 
     var gl = new GList('glist', config);
-    gl.render(data, function(item) {
-      return item.id1;
-    });
+    //gl.render(data);
+
+    var template = function() {
+      return {
+        //name: dataGenerator.randomText(),
+        column1: dataGenerator.randomAmount(),
+        column2: dataGenerator.randomAmount(),
+        column3: dataGenerator.randomAmount(),
+        column4: dataGenerator.randomAmount()
+      }
+    };
+
+    var success = function(data) {
+      gt.render(data);
+    };
+
+    //crono.start();
+    var data = dataGenerator.generate([
+      [3, 4],
+      [2, 2],
+      [1, 2]
+    ], template, success);
+    //crono.log('dataGenerator ' + data.length + ' rows.');
   </script>
 </body>
 

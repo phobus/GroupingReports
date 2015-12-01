@@ -29,14 +29,20 @@
       return output.join(' ');
     },
     loremIpsum: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    generate: function(args, fn) {
+    generate: function(args, template, success) {
       args = args || [
         [6, 9],
         [10, 18],
         [1, 10]
       ];
-      data = [];
-      this.createNode([], 0, args, data, fn);
+      var _this = this,
+        data = [];
+
+      setTimeout(function() {
+        _this.createNode([], 0, args, data, template);
+        success(data);
+      }, 1);
+      //this.createNode([], 0, args, data, fn);
       return data;
     },
     createNode: function(ids, level, args, data, fn) {
