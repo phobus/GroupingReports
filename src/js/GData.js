@@ -50,13 +50,41 @@
       return (this._afn[type] || this._afn['undefined'])(data, type);
     },
 
+    createGroupingRow: function(aggregate) {
+      var column, row = {};
+      for (var i = 0, l = aggregate.length; i < l; i++) {
+        column = aggregate[i];
+        row[column.name] = [];
+      }
+      return row;
+    },
+
+    createTotal: function(data, aggregate) {
+      var value, column, total = this.createGroupingRow(aggregate);
+
+      for (var i = 0, l = data.length; i < l; i++) {
+        for (var j = 0, s = aggregate.length; j < s; j++) {
+          column = aggregate[j];
+          if (column.virtual) {
+            value = column.fn(data[i]);
+          } else {
+            value = data[i][column.name];
+          }
+          total[column.name].push(value);
+        }
+      }
+      return total;
+    },
+
     grouping: function(data, groupBy, aggregate) {
-      return {
-        aggregate: {},
+      var root = {
+        //aggregate: {},
         grouping: '__** {{ALL}} **__',
         key: 'Total',
         values: this.recursiveGrouping(data, groupBy, aggregate, 0)
       };
+      root.aggregate = this.createTotal(data, aggregate);
+      return this.reduce([root], aggregate)[0];
     },
 
     recursiveGrouping: function(data, groupBy, aggregate, index) {
@@ -73,61 +101,58 @@
     groupAndAggregate: function(data, columnGroupBy, aggregate) {
       var value, column, groups = {};
       for (var i = 0, l = data.length; i < l; i++) {
+
         var group = JSON.stringify(data[i][columnGroupBy]);
         if (group in groups) {
-          //append to group
-          for (var j = 0, s = aggregate.length; j < s; j++) {
-            column = aggregate[j];
-            if (column.virtual) {
-              value = column.fn(data[i]);
-              data[i][column.name] = value;
-            } else {
-              value = data[i][column.name];
-            }
-            groups[group].aggregate[column.name].push(value);
-          }
           groups[group].values.push(data[i]);
         } else {
-          //new group
-          var buffer = {};
-          for (var j = 0, s = aggregate.length; j < s; j++) {
-            column = aggregate[j];
-            if (column.virtual) {
-              value = column.fn(data[i]);
-              data[i][column.name] = value;
-            } else {
-              value = data[i][column.name];
-            }
-            buffer[column.name] = [value];
-          }
           groups[group] = {
             grouping: columnGroupBy,
             key: data[i][columnGroupBy],
             values: [data[i]],
-            aggregate: buffer
+            aggregate: this.createGroupingRow(aggregate)
           };
         }
+
+        //append to group
+        for (var j = 0, s = aggregate.length; j < s; j++) {
+          column = aggregate[j];
+          if (column.virtual) {
+            value = column.fn(data[i]);
+            data[i][column.name] = value;
+          } else {
+            value = data[i][column.name];
+          }
+          groups[group].aggregate[column.name].push(value);
+        }
       }
-      return this.reduce(groups, aggregate);
+      return this.reduce(this.toArray(groups), aggregate);
     },
 
-    reduce: function(obj, aggregate) {
-      var group, column, arr = [];
-      for (var i in obj) {
-        group = obj[i];
-        for (var j = 0, l = aggregate.length; j < l; j++) {
+    reduce: function(data, aggregate) {
+      var group, column;
+      for (var i = 0, l = data.length; i < l; i++) {
+        group = data[i];
+        for (var j = 0, s = aggregate.length; j < s; j++) {
           column = aggregate[j];
           if (!column.virtual) {
             group.aggregate[column.name] = this.aggregation(column.aggregate, group.aggregate[column.name]);
           }
         }
-        for (var j = 0, l = aggregate.length; j < l; j++) {
+        for (var j = 0, s = aggregate.length; j < s; j++) {
           column = aggregate[j];
           if (column.virtual) {
             group.aggregate[column.name] = column.fn(group.aggregate);
           }
         }
-        arr.push(group);
+      }
+      return data;
+    },
+
+    toArray: function(obj) {
+      var arr = [];
+      for (var i in obj) {
+        arr.push(obj[i]);
       }
       return arr;
     }

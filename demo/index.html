@@ -85,7 +85,7 @@
         name: 'virtual1',
         alias: 'virtual1',
         fn: function(columns) {
-          return (columns.column3 / columns.column4) * 100;
+          return ((columns.column3 / columns.column4) * 100).toFixed(2) + ' %';
         }
       }],
       groupBy: ['txt_id0', 'txt_id1']
