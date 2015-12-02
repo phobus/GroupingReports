@@ -1,5 +1,5 @@
-# HtmlBuilder
+# GroupingReports
 Json 2 html
-grouping 
+grouping
 
-https://github.com/phobus/HtmlBuilder.git
+https://github.com/phobus/GroupingReports.git

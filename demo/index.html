@@ -6,9 +6,9 @@
   <title>Demo</title>
 
   <link rel="stylesheet" href="../src/css/layout.css">
-  <link rel="stylesheet" href="../src/css/GCommon.css">
-  <link rel="stylesheet" href="../src/css/GTable.css">
-  <link rel="stylesheet" href="../src/css/GList.css">
+  <link rel="stylesheet" href="../src/css/GRCommon.css">
+  <link rel="stylesheet" href="../src/css/GRTable.css">
+  <link rel="stylesheet" href="../src/css/GRList.css">
 
   <style>
     .hidden {
@@ -18,35 +18,39 @@
 </head>
 
 <body>
-  <div id="wrapper">
-    <header class="header">
-      <div class="row">
-        <span class="title">Title</span>
-        <div class="spacer"></div>
+  <div class="gr-wrapper">
+    <header class="gr-header">
+      <div class="gr-row">
+        <span class="gr-title">Title</span>
+        <div class="gr-spacer"></div>
         <span>gtr fe dgrfc </span>
       </div>
     </header>
-    <div class="ribbon"></div>
-    <div class="container">
-      <div class="content content-full shadow-4dp">
-        <div class="row">
-          <span class="title">231 - Ullamco in enim incididunt</span>
-          <div class="spacer"></div>
-          <span class="title">31/01/2017</span>
-        </div>
+    <div class="gr-ribbon"></div>
+    <div class="gr-container">
+      <div class="gr-content gr-content-full gr-shadow-4dp">
+
         <main>
-          <div id="gtable"></div>
+          <div class="gr-row">
+            <span class="gr-title">231 - Ullamco in enim incididunt</span>
+            <div class="gr-spacer"></div>
+            <span class="gr-title">31/01/2017</span>
+          </div>
+
+          <div id="mytable"></div>
+
         </main>
+
       </div>
     </div>
-    <div class="footer">
+    <div class="gr-footer">
       <a href="https://github.com/phobus/HtmlBuilder" target="_blank">https://github.com/phobus/HtmlBuilder</a>
     </div>
   </div>
   <script src="../src/js/GRCore.js"></script>
-  <script src="../src/js/GData.js"></script>
-  <script src="../src/js/GTable.js"></script>
-  <script src="../src/js/GList.js"></script>
+  <script src="../src/js/GRData.js"></script>
+  <script src="../src/js/GRTable.js"></script>
+  <script src="../src/js/GRList.js"></script>
 
   <script src="dataGenerator.js"></script>
   <script>
@@ -54,7 +58,7 @@
       columns: [{
         name: 'txt_id2',
         alias: 'txt_id2',
-        cssClass: 'no-numeric',
+        cssClass: 'gr-no-numeric',
         grouping: true
       }, {
         name: 'column1',
@@ -83,9 +87,13 @@
       groupBy: ['txt_id0', 'txt_id1']
     };
 
+    var element = document.getElementById('mytable');
+    var gt = new GRTable(element, config);
+
+    //Random data generation
+    //like ajax call run success
     var template = function() {
       return {
-        //name: dataGenerator.randomText(),
         column1: dataGenerator.randomAmount(),
         column2: dataGenerator.randomAmount(),
         column3: dataGenerator.randomAmount(),
@@ -93,11 +101,12 @@
       }
     };
 
-    var element = document.getElementById('gtable');
-    var gt = new GTable(element, config);
     var success = function(data) {
       crono.start('render');
+
+      //Render data in table
       gt.render(data);
+
       crono.stop('render', data.length);
     };
 

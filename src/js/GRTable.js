@@ -7,7 +7,7 @@
 
   var baseConfig = {
     /** @type {String} table css classes */
-    cssClass: 'gtable shadow-2dp',
+    cssClass: 'gr-table gr-shadow-2dp',
 
     /** @type {Number} collapse level */
     collapseLevel: 1,
@@ -45,15 +45,14 @@
 
     this.config = defaultConfig;
   }
-  window['GTable'] = GTable;
+  window['GRTable'] = GTable;
 
   GTable.prototype.CssClasses = {
-    TABLE: 'gtable shadow-2dp',
-    HIDDEN: 'hidden',
-    TOTAL: 'total',
-    CONTROL: 'control',
-    ARROW_BOTTOM: 'arrow-bottom',
-    ARROW_RIGHT: 'arrow-right'
+    HIDDEN: 'gr-hidden',
+    TOTAL: 'gr-total',
+    CONTROL: 'gr-control',
+    ARROW_BOTTOM: 'gr-arrow-bottom',
+    ARROW_RIGHT: 'gr-arrow-right'
   };
 
   GTable.prototype._onCreateCellHeader = function(column) {
@@ -74,7 +73,7 @@
   };
 
   GTable.prototype.render = function(data) {
-    var gd = Object.create(GData.prototype);
+    var gd = Object.create(GRData.prototype);
     data = gd.grouping(data, this.config.groupBy, this.config.columns);
     var table = this.renderTable(data);
     this.container.appendChild(table);

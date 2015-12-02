@@ -1,4 +1,4 @@
-.gtable {
+.gr-table {
   border-collapse: collapse;
   border-spacing: 0;
   table-layout: fixed;
@@ -6,30 +6,30 @@
   width: 100%;
   text-align: right;
 }
-.gtable tr {
+.gr-table tr {
   border-top: 1px solid rgba(0, 0, 0, .12);
   border-bottom: 1px solid rgba(0, 0, 0, .12);
 }
-.gtable tbody tr:hover {
+.gr-table tbody tr:hover {
   background-color: #eee;
 }
-.gtable th, .gtable tbody td {
+.gr-table th, .gr-table tbody td {
   padding: 12px 18px;
   overflow: hidden;
 }
-.gtable th {
+.gr-table th {
   color: rgba(0, 0, 0, .54);
 }
-.gtable tfoot td {
+.gr-table tfoot td {
   padding: 24px 18px;
   overflow: hidden;
 }
-.gtable .total {
+.gr-table .gr-total {
   font-weight: 700;
 }
-.gtable tbody .total {
+.gr-table tbody .gr-total {
   cursor: pointer;
 }
-.gtable .no-numeric {
+.gr-table .gr-no-numeric {
   text-align: left;
 }

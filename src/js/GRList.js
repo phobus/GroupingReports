@@ -1,10 +1,10 @@
 (function(window, document, undefined) {
   'use strict';
 
-  var GList = function(config) {}
-  window['GList'] = GList;
+  var GRList = function(config) {}
+  window['GRList'] = GRList;
 
-  GList.prototype = {
+  GRList.prototype = {
     render: function(data, fn) {
       //var gd = Object.create(GData.prototype);
       //data = gd.groupBy(data, fn);
