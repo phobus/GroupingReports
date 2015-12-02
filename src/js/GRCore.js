@@ -1,13 +1,13 @@
 (function(window, document, undefined) {
   'use strict';
 
-  var Gr = function() {}
+  var Gr = function() {};
   window['Gr'] = Gr;
 
   var defaultConfig = {
     title: 'Grouping Report',
     fullWitch: true
-  }
+  };
 
   Gr.extend = function(base) {
     var extensionObject;

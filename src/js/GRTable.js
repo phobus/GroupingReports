@@ -44,7 +44,7 @@
     Gr.extend(defaultConfig, config);
 
     this.config = defaultConfig;
-  }
+  };
   window['GRTable'] = GTable;
 
   GTable.prototype.CssClasses = {
@@ -59,7 +59,7 @@
     return column.alias;
   };
   GTable.prototype._onCreateCellData = function(column, data) {
-    return data[column.name]
+    return data[column.name];
   };
 
   GTable.prototype._onCreateCellGroup = function(column, data) {
@@ -141,7 +141,7 @@
   GTable.prototype.createHeader = function(thead) {
     var text, cell, row = document.createElement('tr');
     for (var i = 0, l = this.config.columns.length; i < l; i++) {
-      cell = document.createElement('th')
+      cell = document.createElement('th');
       text = document.createTextNode(this._onCreateCellHeader(this.config.columns[i]));
       cell.appendChild(text);
       if (this.config.columns[i].cssClass) {
@@ -203,7 +203,7 @@
       //data rows
       row.classList.add(this.CssClasses.HIDDEN);
     } else {
-      if (level == 0) {
+      if (level === 0) {
         //rows groupby
         control.classList.add(this.CssClasses.ARROW_BOTTOM);
       } else if (level == 1) {
@@ -317,6 +317,6 @@
       nextRow = nextRow.nextSibling;
     }
     return arr;
-  }
+  };
 
 })(window, document);

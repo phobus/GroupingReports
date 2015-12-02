@@ -1,7 +1,7 @@
 (function(window, document, undefined) {
   'use strict';
 
-  var GRData = function() {}
+  var GRData = function() {};
   window['GRData'] = GRData;
 
   GRData.prototype._afn = {
@@ -135,7 +135,7 @@
           group.aggregate[column.name] = this.aggregation(column.aggregate, group.aggregate[column.name]);
         }
       }
-      for (var j = 0, s = aggregate.length; j < s; j++) {
+      for (j = 0, s = aggregate.length; j < s; j++) {
         column = aggregate[j];
         if (column.virtual) {
           group.aggregate[column.name] = column.fn(group.aggregate);

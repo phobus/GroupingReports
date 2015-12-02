@@ -1,7 +1,7 @@
 (function(window, document, undefined) {
   'use strict';
 
-  var GRList = function(config) {}
+  var GRList = function(config) {};
   window['GRList'] = GRList;
 
   GRList.prototype = {
@@ -10,7 +10,8 @@
       //data = gd.groupBy(data, fn);
       var ul = document.createElement('ul');
     }
-  }
+  };
+  
 
   var crono = {
     data: {},
@@ -32,6 +33,6 @@
         console.log('Finish ' + name + ' in ' + this.data[name].time());
       }
     }
-  }
+  };
   window['crono'] = crono;
 })(window, document);
