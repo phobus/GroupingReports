@@ -29,7 +29,6 @@
   "homepage": "http://phobus.github.io/GroupingReports",
   "devDependencies": {
     "browser-sync": "^2.10.0",
-    "grunt-contrib-jshint": "^0.11.3",
     "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-jshint": "^2.0.0",
