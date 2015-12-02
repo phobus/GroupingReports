@@ -13,16 +13,22 @@
 .gtable tbody tr:hover {
   background-color: #eee;
 }
-.gtable th, .gtable td {
+.gtable th, .gtable tbody td {
   padding: 12px 18px;
   overflow: hidden;
 }
 .gtable th {
   color: rgba(0, 0, 0, .54);
 }
-.gtable .total, .gtable .sub-total {
-  cursor: pointer;
+.gtable tfoot td {
+  padding: 24px 18px;
+  overflow: hidden;
+}
+.gtable .total {
   font-weight: 700;
+}
+.gtable tbody .total {
+  cursor: pointer;
 }
 .gtable .no-numeric {
   text-align: left;

@@ -41,7 +41,7 @@
       setTimeout(function() {
         _this.createNode([], 0, args, data, template);
         success(data);
-      }, 1);
+      }, 0);
       //this.createNode([], 0, args, data, fn);
       return data;
     },

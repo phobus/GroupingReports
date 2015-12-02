@@ -76,7 +76,10 @@
       return total;
     },
 
-    grouping: function(data, groupBy, aggregate) {
+    grouping: function(data, groupBy, columns) {
+      var aggregate = columns.filter(function(o, i) {
+        return o.aggregate || o.virtual || false;
+      });
       var root = {
         //aggregate: {},
         grouping: '__** {{ALL}} **__',
