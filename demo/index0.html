@@ -48,8 +48,8 @@
     </div>
   </div>
   <script src="../src/js/GRCore.js"></script>
-  <script src="../src/js/GRData.js"></script>
-  <script src="../src/js/GRTable.js"></script>
+  <script src="../src/js/GRData0.js"></script>
+  <script src="../src/js/GRTable0.js"></script>
   <script src="../src/js/GRList.js"></script>
 
   <script src="dataGenerator.js"></script>
@@ -86,7 +86,7 @@
         name: 'virtual1',
         alias: 'virtual1',
         fn: function(columns) {
-          return ((columns.column3 / columns.column4) * 100).toFixed(2) + ' %';
+          return (columns.column3 / columns.column4) * 100;
         },
         width: '12%'
       }],
@@ -108,12 +108,15 @@
     };
 
     var success = function(data) {
+
+
       crono.start('render');
 
       //Render data in table
       gt.render(data);
 
       crono.stop('render', data.length);
+
     };
 
     var data = dataGenerator.generate([

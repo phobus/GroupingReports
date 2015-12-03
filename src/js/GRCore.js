@@ -1,12 +1,14 @@
-(function(window, document, undefined) {
+(function(window, document, Gr, undefined) {
   'use strict';
 
-  var Gr = function() {};
-  window['Gr'] = Gr;
-
-  var defaultConfig = {
-    title: 'Grouping Report',
-    fullWitch: true
+  Gr.clone = function(obj) {
+    var objClone = {};
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        objClone[key] = obj[key];
+      }
+    }
+    return objClone;
   };
 
   Gr.extend = function(base) {
@@ -21,14 +23,7 @@
     }
   };
 
-  Gr.clone = function(obj) {
-    var objClone = {};
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        objClone[key] = obj[key];
-      }
-    }
-    return objClone;
+  var uniqueId = function() {
+    return ++this.lastId;
   };
-
-})(window, document);
+})(window, document, window.Gr = window.Gr || {});

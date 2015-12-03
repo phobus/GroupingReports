@@ -75,6 +75,12 @@
   GTable.prototype.render = function(data) {
     var gd = Object.create(GRData.prototype);
     data = gd.grouping(data, this.config.groupBy, this.config.columns);
+    /*var aggregate = this.config.columns.filter(function(o, i) {
+      return o.aggregate || o.virtual || false;
+    });
+    var grd = new GrData();
+    var data = grd.grouping(data, this.config.groupBy, aggregate, 0);*/
+    console.log(data);
     var table = this.renderTable(data);
     this.container.appendChild(table);
   };
