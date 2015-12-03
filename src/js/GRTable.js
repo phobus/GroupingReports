@@ -45,7 +45,7 @@
 
     this.config = defaultConfig;
   };
-  window['GRTable'] = GTable;
+  window.GRTable = GTable;
 
   GTable.prototype.CssClasses = {
     HIDDEN: 'gr-hidden',
@@ -73,16 +73,21 @@
   };
 
   GTable.prototype.render = function(data) {
+    crono.start('render');
+    var l = data.length;
+
+    crono.start('groupBy data');
     var gd = Object.create(GRData.prototype);
     data = gd.grouping(data, this.config.groupBy, this.config.columns);
-    /*var aggregate = this.config.columns.filter(function(o, i) {
-      return o.aggregate || o.virtual || false;
-    });
-    var grd = new GrData();
-    var data = grd.grouping(data, this.config.groupBy, aggregate, 0);*/
     console.log(data);
+    crono.stop('groupBy data');
+
+    crono.start('renderTable');
     var table = this.renderTable(data);
     this.container.appendChild(table);
+    crono.stop('renderTable');
+
+    crono.stop('render', l);
   };
 
   GTable.prototype.renderTable = function(data) {

@@ -2,7 +2,7 @@
   'use strict';
 
   var GRData = function() {};
-  window['GRData'] = GRData;
+  window.GRData = GRData;
 
   GRData.prototype._afn = {
 

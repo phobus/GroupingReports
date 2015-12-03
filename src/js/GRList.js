@@ -2,7 +2,7 @@
   'use strict';
 
   var GRList = function(config) {};
-  window['GRList'] = GRList;
+  window.GRList = GRList;
 
   GRList.prototype = {
     render: function(data, fn) {
@@ -34,5 +34,5 @@
       }
     }
   };
-  window['crono'] = crono;
+  window.crono = crono;
 })(window, document);

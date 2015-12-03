@@ -1,7 +1,7 @@
 (function(window, document, Gr, undefined) {
   'use strict';
 
-  var GroupData = function(groupBy, key, level) {
+  var DataGroup = function(groupBy, key, level) {
     this.groupBy = groupBy || 'Gran Total';
     this.key = key || '__ALL__';
     this.level = level || 0;
@@ -11,7 +11,7 @@
     this.aggregate = {};
   };
 
-  GroupData.prototype.init = function(columns, data) {
+  DataGroup.prototype.init = function(columns, data) {
     //init aggregate values
     for (var i = 0, l = columns.length, value; i < l; i++) {
       value = this.getValue(columns[i], data);
@@ -21,7 +21,7 @@
     this.values.push(data);
   };
 
-  GroupData.prototype.push = function(columns, data) {
+  DataGroup.prototype.push = function(columns, data) {
     //push aggregate values
     for (var i = 0, l = columns.length, value; i < l; i++) {
       value = this.getValue(columns[i], data);
@@ -32,7 +32,7 @@
   };
 
   //TO DO: column.virtual value can be cached
-  GroupData.prototype.getValue = function(column, data) {
+  DataGroup.prototype.getValue = function(column, data) {
     var value;
     if (column.virtual) {
       value = column.fn(data);
@@ -44,25 +44,26 @@
     return value;
   };
 
-  GroupData.prototype.reduce = function(columns) {
-    for (var i = 0, l = columns.length, column; i < l; i++) {
+  DataGroup.prototype.reduce = function(columns) {
+    var column;
+    for (var i = 0, l = columns.length; i < l; i++) {
       column = columns[i];
       if (!column.virtual) {
         this.aggregate[columns[i].name] = Gr.Data.aggregation(column.aggregate, this.aggregate[column.name]);
       }
     }
 
-    for (var i = 0, l = columns.length, column; i < l; i++) {
-      column = columns[i];
+    for (var j = 0, m = columns.length; j < m; j++) {
+      column = columns[j];
       if (column.virtual) {
-        this.aggregate[columns[i].name] = column.fn(this.aggregate);
+        this.aggregate[columns[j].name] = column.fn(this.aggregate);
       }
     }
   };
 
   Gr.Data = {
     grouping: function(columns, data, groupBy, level) {
-      //level = level || 0;
+      level = level || 0;
       var r, dataRow, group, groups = {},
         groupByColumn = groupBy[level];
 
@@ -76,7 +77,7 @@
           groups[group].push(columns, dataRow);
         } else {
           // new grouing
-          groups[group] = new GroupData(groupByColumn, dataRow[groupByColumn], level);
+          groups[group] = new DataGroup(groupByColumn, dataRow[groupByColumn], level);
           groups[group].init(columns, dataRow);
         }
       }
@@ -84,6 +85,7 @@
       r = this.toArray(groups);
       for (var j = 0, m = r.length; j < m; j++) {
         if (level < groupBy.length - 1) {
+          //Grouping childs
           r[j].values = this.grouping(columns, r[j].values, groupBy, level + 1);
           r[j].count = r[j].values.length;
         }
@@ -128,5 +130,6 @@
     aggregation: function(type, data) {
       return (this.afn[type] || this.afn['undefined'])(data, type);
     }
-  }
+  };
+  
 })(window, document, window.Gr = window.Gr || {});

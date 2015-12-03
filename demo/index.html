@@ -108,18 +108,14 @@
     };
 
     var success = function(data) {
-      crono.start('render');
-
       //Render data in table
       gt.render(data);
-
-      crono.stop('render', data.length);
     };
 
     var data = dataGenerator.generate([
-      [2, 2],
-      [2, 2],
-      [2, 2]
+      [20, 20],
+      [20, 20],
+      [200, 200]
     ], template, success);
   </script>
 </body>

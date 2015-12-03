@@ -94,7 +94,7 @@
     };
 
     var element = document.getElementById('mytable');
-    var gt = new GRTable(element, config);
+    var gt = new Gr.DataTable(element, config);
 
     //Random data generation
     //like ajax call run success
@@ -108,21 +108,15 @@
     };
 
     var success = function(data) {
-
-
-      crono.start('render');
-
       //Render data in table
       gt.render(data);
-
-      crono.stop('render', data.length);
 
     };
 
     var data = dataGenerator.generate([
-      [2, 2],
-      [2, 2],
-      [2, 2]
+      [200, 200],
+      [20, 20],
+      [20, 20]
     ], template, success);
   </script>
 </body>
