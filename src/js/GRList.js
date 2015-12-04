@@ -2,7 +2,7 @@
   'use strict';
 
   var GRList = function(config) {};
-  window['GRList'] = GRList;
+  window.GRList = GRList;
 
   GRList.prototype = {
     render: function(data, fn) {
@@ -11,7 +11,7 @@
       var ul = document.createElement('ul');
     }
   };
-  
+
 
   var crono = {
     data: {},
@@ -27,12 +27,12 @@
     stop: function(name, length) {
       this.data[name].stop = new Date().getTime();
       if (name == 'render') {
-        console.log('Finish ' + name + ' ' + length + ' rows in ' + this.data[name].time());
-        console.log(length + '/' + this.data[name].time() + ' = ' + (length / this.data[name].time()));
+        console.log('Finish ' + name + ' in ' + this.data[name].time() + ', ' + length + ' rows');
+        console.log(this.data[name].time() + '/' + length + ' = ' + (this.data[name].time() / length));
       } else {
         console.log('Finish ' + name + ' in ' + this.data[name].time());
       }
     }
   };
-  window['crono'] = crono;
+  window.crono = crono;
 })(window, document);

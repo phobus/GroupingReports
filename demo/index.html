@@ -55,40 +55,47 @@
   <script src="dataGenerator.js"></script>
   <script>
     var config = {
+      collapseLevel: 1,
       columns: [{
         name: 'txt_id2',
         alias: 'txt_id2',
         cssClass: 'gr-no-numeric',
-        grouping: true
+        grouping: true,
+        width: ''
       }, {
         name: 'column1',
         alias: 'column1',
-        aggregate: 'sum'
+        aggregate: 'sum',
+        width: '12%'
       }, {
         name: 'column2',
         alias: 'column2',
-        aggregate: 'sum'
+        aggregate: 'sum',
+        width: '12%'
       }, {
         name: 'column3',
         alias: 'column3',
-        aggregate: 'sum'
+        aggregate: 'sum',
+        width: '12%'
       }, {
         name: 'column4',
         alias: 'column4',
-        aggregate: 'sum'
+        aggregate: 'sum',
+        width: '12%'
       }, {
         virtual: true,
         name: 'virtual1',
         alias: 'virtual1',
         fn: function(columns) {
-          return ((columns.column3 / columns.column4) * 100).toFixed(2) + ' %';
-        }
+          return (columns.column3 / columns.column4) * 100;
+        },
+        width: '12%'
       }],
       groupBy: ['txt_id0', 'txt_id1']
     };
 
     var element = document.getElementById('mytable');
-    var gt = new GRTable(element, config);
+    var gt = new Gr.DataTable(element, config);
 
     //Random data generation
     //like ajax call run success
@@ -102,18 +109,15 @@
     };
 
     var success = function(data) {
-      crono.start('render');
-
       //Render data in table
       gt.render(data);
 
-      crono.stop('render', data.length);
     };
 
     var data = dataGenerator.generate([
-      [2, 2],
-      [2, 2],
-      [2, 2]
+      [20, 20],
+      [20, 20],
+      [23, 23]
     ], template, success);
   </script>
 </body>

@@ -2,8 +2,8 @@
   'use strict';
 
   var CheckConfig = function(config) {};
-  window['CheckConfig'] = CheckConfig;
-  
+  window.CheckConfig = CheckConfig;
+
   CheckConfig.prototype = {
 
   };

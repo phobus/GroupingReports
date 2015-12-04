@@ -31,7 +31,7 @@ gulp.task('watch', ['browserSync'], function() {
 gulp.task('browserSync', function() {
   browserSync({
     server: {
-      baseDir: 'app'
+      baseDir: '.'
     },
   })
 });
