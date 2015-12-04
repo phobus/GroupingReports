@@ -1,5 +1,7 @@
 # GroupingReports
 
+http://phobus.github.io/GroupingReports/
+
 Group json data by field/s name.
 Creates a data table report with grouped rows and total line
 Virtual columns
@@ -21,4 +23,3 @@ TO DO
 * requestAnimationFrame
 
 
-https://github.com/phobus/GroupingReports.git
