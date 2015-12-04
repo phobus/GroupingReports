@@ -2,7 +2,7 @@
  *
  *
  */
-(function(window, document, Gr, undefined) {
+(function(window, document, gr, undefined) {
   'use strict';
 
   var baseConfig = {
@@ -18,7 +18,7 @@
       unit: 'px'
     },
 
-    /** @type {Object} gran total: top or bottom */
+    /** @type {Object} gran total: top or bottom. False to hide */
     total: {
       alias: 'Total',
       position: 'bottom'
@@ -40,12 +40,12 @@
   var DataTable = function(element, config) {
     this.container = element;
 
-    var defaultConfig = Gr.clone(baseConfig);
-    Gr.extend(defaultConfig, config);
+    var defaultConfig = gr.clone(baseConfig);
+    gr.extend(defaultConfig, config);
 
     this.config = defaultConfig;
   };
-  Gr.DataTable = DataTable;
+  gr.DataTable = DataTable;
 
   DataTable.prototype.CssClasses = {
     HIDDEN: 'gr-hidden',
@@ -63,12 +63,7 @@
 
     crono.start('groupBy data');
 
-    var aggregateColumns = this.config.columns.filter(function(o, i) {
-      return o.aggregate || o.virtual || false;
-    });
-    this.config.groupBy.unshift('__ALL__');
-    data = Gr.Data.grouping(aggregateColumns, data, this.config.groupBy, 0);
-    console.log(data);
+    data = gr.Data.grouping(this.config.columns, this.config.groupBy, data, this.config.total);
 
     crono.stop('groupBy data');
 
@@ -76,13 +71,11 @@
     crono.start('renderTable');
 
     var table = this.renderTable(data);
-    this.container.appendChild(table);
 
     crono.stop('renderTable');
 
 
     crono.stop('render', l);
-    this.data = data;
   };
 
   DataTable.prototype.renderTable = function(data) {
@@ -94,18 +87,36 @@
     table.className = this.config.cssClass;
     table.appendChild(thead);
     table.appendChild(tbody);
+    this.container.appendChild(table);
 
     // cache for cloning rows :D
     this.buildCache();
 
-    thead.appendChild(this.createRow('th', true, true));
+    thead.appendChild(this.createRowAndCells('th', true, true));
 
-    this.createBody(tbody, data[0], 0);
+    for (var i = 0, l = data.length; i < l; i++) {
+      this.createBody(tbody, data[i], 0);
+    }
+
+    if (this.config.total && this.config.total.position == 'bottom') {
+      var text, cell, tfoot = document.createElement('tfoot'),
+        row = this.createRowAndCells('td');
+
+      //cells
+      for (var i = 0, l = this.config.columns.length; i < l; i++) {
+        cell = row.childNodes[i];
+        text = document.createTextNode(this._onCreateCellGroup(this.config.columns[i], data[0]));
+        cell.appendChild(text);
+      }
+      tfoot.appendChild(row);
+      table.appendChild(tfoot);
+    }
+    //requestAnimationFrame(this.createBody.bind(this, tbody, data[0], 0));
 
     return table;
   };
 
-  DataTable.prototype.createRow = function(tag, setWidth, setAlias) {
+  DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias) {
     var column, cell, row = document.createElement('tr');
     for (var i = 0, l = this.config.columns.length; i < l; i++) {
       column = this.config.columns[i];
@@ -131,38 +142,38 @@
   };
 
   DataTable.prototype.buildCache = function() {
-    var row, control, maxLevel = this.config.groupBy.length;
+    var row, control,
+      maxLevel = this.config.total ? this.config.groupBy.length + 1 : this.config.groupBy.length,
+      collapse = false;
     this._baseRows = [];
 
     for (var level = 0; level <= maxLevel; level++) {
-      row = this.createRow('td');
       //tree control
       control = document.createElement('span');
       control.className = this.CssClasses.CONTROL;
-      //console.log(level, maxLevel, level >= maxLevel, this.config.collapseLevel);
 
-      if (level >= maxLevel && level > this.config.collapseLevel) {
-        //console.log('level >= maxLevel');
-        row.classList.add(this.CssClasses.HIDDEN);
-      } else if (level < this.config.collapseLevel) {
-        //console.log('level < collapseLevel');
-        control.classList.add(this.CssClasses.ARROW_BOTTOM);
-      } else if (level == this.config.collapseLevel) {
-        //console.log('level == collapseLevel');
-        control.classList.add(this.CssClasses.ARROW_RIGHT);
-        row.dataset.collapse = true;
-      } else {
-        //console.log('level else collapseLevel');
-        control.classList.add(this.CssClasses.ARROW_RIGHT);
-        row.dataset.collapse = true;
-        row.classList.add(this.CssClasses.HIDDEN);
+      //Arrows
+      if (level < maxLevel) {
+        if (level < this.config.collapseLevel) {
+          control.classList.add(this.CssClasses.ARROW_BOTTOM);
+        } else {
+          control.classList.add(this.CssClasses.ARROW_RIGHT);
+        }
       }
 
-
-      if (level != 0) {
+      //padding
+      if (level !== 0) {
         control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
       }
+
+      //level data row
+      row = this.createRowAndCells('td');
       row.firstChild.appendChild(control);
+
+      //collapseLevel
+      if (level > this.config.collapseLevel) {
+        row.classList.add(this.CssClasses.HIDDEN);
+      }
 
       this._baseRows.push(row);
     }
@@ -170,7 +181,6 @@
 
   DataTable.prototype.cloneRow = function(fn, data, level) {
     var text, cell, row = this._baseRows[level].cloneNode(true);
-
     //cells
     for (var i = 0, l = this.config.columns.length; i < l; i++) {
       cell = row.childNodes[i];
@@ -181,7 +191,7 @@
   };
 
   DataTable.prototype.createBody = function(tbody, data, level) {
-    var row;
+    var row, child;
     if (data.values) {
       // groupBy rows
       row = this.cloneRow(this._onCreateCellGroup, data, level);
@@ -189,18 +199,25 @@
 
       // groupBy rows event
       row.addEventListener('click', this.dataRowClickHandler.bind(this));
-      row.dataset.level = level;
+      row.level = level;
+      row.rowTree = [];
+      if (level >= this.config.collapseLevel) {
+        row.collapse = true;
+      }
       tbody.appendChild(row);
 
       // groupBy values
       for (var k = 0, l = data.values.length; k < l; k++) {
-        this.createBody(tbody, data.values[k], level + 1);
+        child = this.createBody(tbody, data.values[k], level + 1);
+        row.rowTree.push(child);
+        //requestAnimationFrame(this.createBody.bind(this, tbody, data.values[k], level + 1));
       }
     } else {
       // Data rows
       row = this.cloneRow(this._onCreateCellData, data, level);
       tbody.appendChild(row);
     }
+    return row;
   };
 
   DataTable.prototype._onCreateCellHeader = function(column) {
@@ -245,65 +262,43 @@
   };
 
   DataTable.prototype.dataRowClickHandler = function(event) {
-    crono.start('dataRowClickHandler');
     var row = this.closestRow(event.target);
     if (row) {
-      if (row.dataset.collapse) {
-        delete row.dataset.collapse;
+      if (row.collapse) {
+        crono.start('expandRows');
+        row.collapse = false;
         this.expandRows(row);
+        crono.stop('expandRows');
       } else {
-        row.dataset.collapse = true;
-        this.collapseRows(row);
+        crono.start('collapseRows');
+        row.collapse = true;
+        this.collapseRows(row, 0);
+        crono.stop('collapseRows');
       }
       var control = row.firstChild.firstChild;
       control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
       control.classList.toggle(this.CssClasses.ARROW_RIGHT);
     }
-    crono.stop('dataRowClickHandler');
   };
 
-  DataTable.prototype.collapseRows = function(row) {
-    var level,
-      clickRowLevel = row.dataset.level,
-      nextRow = row.nextSibling;
-    while (nextRow) {
-      level = nextRow.dataset.level;
-      if (level <= clickRowLevel) {
-        break;
+  DataTable.prototype.collapseRows = function(row, isChild) {
+    if (row.rowTree) {
+      for (var i = 0, l = row.rowTree.length; i < l; i++) {
+        row.rowTree[i].classList.add(this.CssClasses.HIDDEN);
+        this.collapseRows(row.rowTree[i]);
       }
-      nextRow.classList.add(this.CssClasses.HIDDEN);
-      nextRow = nextRow.nextSibling;
     }
   };
 
   DataTable.prototype.expandRows = function(row) {
-    var level, clickRowLevel = row.dataset.level,
-      nextRow = row.nextSibling,
-      skip = false,
-      skipLevel;
-
-    var i = 0;
-    while (nextRow) {
-      level = nextRow.dataset.level;
-      if (level <= clickRowLevel) {
-        break;
-      }
-      if (level) {
-        if (skipLevel === undefined || level <= skipLevel) {
-          if (nextRow.dataset.collapse) {
-            nextRow.classList.remove(this.CssClasses.HIDDEN);
-            skip = true;
-            skipLevel = level;
-          } else {
-            skip = false;
-          }
+    if (row.rowTree) {
+      for (var i = 0, l = row.rowTree.length; i < l; i++) {
+        row.rowTree[i].classList.remove(this.CssClasses.HIDDEN);
+        if (!row.rowTree[i].collapse) {
+          this.expandRows(row.rowTree[i]);
         }
       }
-
-      if (!skip) {
-        nextRow.classList.remove(this.CssClasses.HIDDEN);
-      }
-      nextRow = nextRow.nextSibling;
     }
   };
-})(window, document, window.Gr = window.Gr || {});
+
+})(window, document, window.gr = window.gr || {});

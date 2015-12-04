@@ -39,8 +39,6 @@ a {
 }
 .gr-hidden {
   display: none !important;
-  /*position: absolute;
-  top: -100px;*/
 }
 .gr-noselect {
   -webkit-touch-callout: none;

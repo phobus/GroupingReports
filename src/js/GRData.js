@@ -1,4 +1,4 @@
-(function(window, document, Gr, undefined) {
+(function(window, document, gr, undefined) {
   'use strict';
 
   var DataGroup = function(groupBy, key, level) {
@@ -13,9 +13,15 @@
 
   DataGroup.prototype.init = function(columns, data) {
     //init aggregate values
-    for (var i = 0, l = columns.length, value; i < l; i++) {
-      value = this.getValue(columns[i], data);
-      this.aggregate[columns[i].name] = [value];
+    for (var i = 0, l = columns.length, column; i < l; i++) {
+      column = columns[i];
+      if (column.virtual) {
+        // store virtual column in data
+        data[column.name] = column.fn(data);
+      } else {
+        // store data in aggregate
+        this.aggregate[column.name] = [data[column.name]];
+      }
     }
     //push values
     this.values.push(data);
@@ -23,15 +29,20 @@
 
   DataGroup.prototype.push = function(columns, data) {
     //push aggregate values
-    for (var i = 0, l = columns.length, value; i < l; i++) {
-      value = this.getValue(columns[i], data);
-      this.aggregate[columns[i].name].push(value);
+    for (var i = 0, l = columns.length, column; i < l; i++) {
+      column = columns[i];
+      if (column.virtual) {
+        // store virtual column in data
+        data[column.name] = column.fn(data);
+      } else {
+        // store data in aggregate
+        this.aggregate[column.name].push(data[column.name]);
+      }
     }
     //push values
     this.values.push(data);
   };
 
-  //TO DO: column.virtual value can be cached
   DataGroup.prototype.getValue = function(column, data) {
     var value;
     if (column.virtual) {
@@ -44,25 +55,49 @@
     return value;
   };
 
-  DataGroup.prototype.reduce = function(columns) {
+  DataGroup.prototype.reduce = function(aggregateColumns, virtualColumns) {
     var column;
-    for (var i = 0, l = columns.length; i < l; i++) {
-      column = columns[i];
-      if (!column.virtual) {
-        this.aggregate[columns[i].name] = Gr.Data.aggregation(column.aggregate, this.aggregate[column.name]);
-      }
+    for (var i = 0, l = aggregateColumns.length; i < l; i++) {
+      column = aggregateColumns[i];
+      this.aggregate[column.name] = gr.Data.aggregation(column.aggregate, this.aggregate[column.name]);
     }
 
-    for (var j = 0, m = columns.length; j < m; j++) {
-      column = columns[j];
-      if (column.virtual) {
-        this.aggregate[columns[j].name] = column.fn(this.aggregate);
-      }
+    for (var j = 0, m = virtualColumns.length; j < m; j++) {
+      column = virtualColumns[j];
+      this.aggregate[column.name] = column.fn(this.aggregate);
     }
   };
 
-  Gr.Data = {
-    grouping: function(columns, data, groupBy, level) {
+  gr.Data = {
+    grouping: function(columns, groupBy, data, total) {
+      var avColumns = [],
+        aggregateColumns = [],
+        virtualColumns = [],
+        column;
+      for (var i = 0, l = columns.length; i < l; i++) {
+        column = columns[i];
+        if (column.aggregate || column.virtual) {
+          avColumns.push(column);
+        }
+        if (column.aggregate) {
+          aggregateColumns.push(column);
+        }
+        if (column.virtual) {
+          virtualColumns.push(column);
+        }
+      }
+
+      var grouping;
+      if (total) {
+        grouping = ['__ALL__'].concat(groupBy);
+      } else {
+        grouping = groupBy;
+      }
+
+      return this.groupingLoop(avColumns, aggregateColumns, virtualColumns, grouping, data, 0);
+    },
+
+    groupingLoop: function(columns, aggregateColumns, virtualColumns, groupBy, data, level) {
       level = level || 0;
       var r, dataRow, group, groups = {},
         groupByColumn = groupBy[level];
@@ -86,10 +121,10 @@
       for (var j = 0, m = r.length; j < m; j++) {
         if (level < groupBy.length - 1) {
           //Grouping childs
-          r[j].values = this.grouping(columns, r[j].values, groupBy, level + 1);
+          r[j].values = this.groupingLoop(columns, aggregateColumns, virtualColumns, groupBy, r[j].values, level + 1);
           r[j].count = r[j].values.length;
         }
-        r[j].reduce(columns);
+        r[j].reduce(aggregateColumns, virtualColumns);
       }
       return r;
     },
@@ -132,4 +167,4 @@
     }
   };
 
-})(window, document, window.Gr = window.Gr || {});
+})(window, document, window.gr = window.gr || {});

@@ -56,6 +56,7 @@
   <script>
     var config = {
       collapseLevel: 1,
+      //total: false,
       columns: [{
         name: 'txt_id2',
         alias: 'txt_id2',
@@ -95,7 +96,7 @@
     };
 
     var element = document.getElementById('mytable');
-    var gt = new Gr.DataTable(element, config);
+    var gt = new gr.DataTable(element, config);
 
     //Random data generation
     //like ajax call run success
@@ -115,9 +116,9 @@
     };
 
     var data = dataGenerator.generate([
-      [20, 20],
-      [20, 20],
-      [23, 23]
+      [2, 2],
+      [2, 2],
+      [2, 2]
     ], template, success);
   </script>
 </body>
