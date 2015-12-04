@@ -82,6 +82,7 @@
 
 
     crono.stop('render', l);
+    this.data = data;
   };
 
   DataTable.prototype.renderTable = function(data) {
@@ -130,35 +131,38 @@
   };
 
   DataTable.prototype.buildCache = function() {
-    var row, control, maxLevel = this.config.groupBy.length + 1;
+    var row, control, maxLevel = this.config.groupBy.length;
     this._baseRows = [];
 
-    for (var level = 0; level < maxLevel; level++) {
+    for (var level = 0; level <= maxLevel; level++) {
       row = this.createRow('td');
+      //tree control
       control = document.createElement('span');
       control.className = this.CssClasses.CONTROL;
+      console.log(level, maxLevel, level >= maxLevel, this.config.collapseLevel);
+
+      if (level >= maxLevel && level > this.config.collapseLevel) {
+        console.log('level >= maxLevel');
+        row.classList.add(this.CssClasses.HIDDEN);
+      } else if (level < this.config.collapseLevel) {
+        console.log('level < collapseLevel');
+        control.classList.add(this.CssClasses.ARROW_BOTTOM);
+      } else if (level == this.config.collapseLevel) {
+        console.log('level == collapseLevel');
+        control.classList.add(this.CssClasses.ARROW_RIGHT);
+        row.dataset.collapse = true;
+      } else {
+        console.log('level else collapseLevel');
+        control.classList.add(this.CssClasses.ARROW_RIGHT);
+        row.dataset.collapse = true;
+        row.classList.add(this.CssClasses.HIDDEN);
+      }
+
+
       if (level != 0) {
         control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
       }
       row.firstChild.appendChild(control);
-
-      //tree control
-      if (level >= maxLevel) {
-        //data rows
-        row.classList.add(this.CssClasses.HIDDEN);
-      } else {
-        if (level === 0) {
-          //rows groupby
-          control.classList.add(this.CssClasses.ARROW_BOTTOM);
-        } else if (level == 1) {
-          control.classList.add(this.CssClasses.ARROW_RIGHT);
-          row.dataset.collapse = true;
-        } else {
-          control.classList.add(this.CssClasses.ARROW_RIGHT);
-          row.dataset.collapse = true;
-          row.classList.add(this.CssClasses.HIDDEN);
-        }
-      }
 
       this._baseRows.push(row);
     }
@@ -205,23 +209,99 @@
 
   DataTable.prototype._onCreateCellData = function(column, data) {
     if (column.name != 'txt_id2') {
-      return data[column.name].toFixed(2);
+      return data[column.name].toFixed(2).toLocaleString();
     }
     return data[column.name];
   };
 
   DataTable.prototype._onCreateCellGroup = function(column, data) {
     if (column.aggregate && data.aggregate) {
-      return data.aggregate[column.name].toFixed(2);
+      return data.aggregate[column.name].toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
     } else if (column.virtual) {
-      return data.aggregate[column.name].toFixed(2);
+      return data.aggregate[column.name].toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
     } else {
       return data.key;
     }
   };
 
-  DataTable.prototype.dataRowClickHandler = function(event) {
-    console.log(event);
+  /**
+   * handling ui
+   */
+  DataTable.prototype.closestRow = function(e) {
+    while (e) {
+      if (e.tagName == 'TR') {
+        return e;
+      }
+      e = e.parentElement;
+    }
   };
 
+  DataTable.prototype.dataRowClickHandler = function(event) {
+    crono.start('dataRowClickHandler');
+    var row = this.closestRow(event.target);
+    if (row) {
+      if (row.dataset.collapse) {
+        delete row.dataset.collapse;
+        this.expandRows(row);
+      } else {
+        row.dataset.collapse = true;
+        this.collapseRows(row);
+      }
+      var control = row.firstChild.firstChild;
+      control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
+      control.classList.toggle(this.CssClasses.ARROW_RIGHT);
+    }
+    crono.stop('dataRowClickHandler');
+  };
+
+  DataTable.prototype.collapseRows = function(row) {
+    var level,
+      clickRowLevel = row.dataset.level,
+      nextRow = row.nextSibling;
+    while (nextRow) {
+      level = nextRow.dataset.level;
+      if (level <= clickRowLevel) {
+        break;
+      }
+      nextRow.classList.add(this.CssClasses.HIDDEN);
+      nextRow = nextRow.nextSibling;
+    }
+  };
+
+  DataTable.prototype.expandRows = function(row) {
+    var level, clickRowLevel = row.dataset.level,
+      nextRow = row.nextSibling,
+      skip = false,
+      skipLevel;
+
+    var i = 0;
+    while (nextRow) {
+      level = nextRow.dataset.level;
+      if (level <= clickRowLevel) {
+        break;
+      }
+      if (level) {
+        if (skipLevel === undefined || level <= skipLevel) {
+          if (nextRow.dataset.collapse) {
+            nextRow.classList.remove(this.CssClasses.HIDDEN);
+            skip = true;
+            skipLevel = level;
+          } else {
+            skip = false;
+          }
+        }
+      }
+
+      if (!skip) {
+        nextRow.classList.remove(this.CssClasses.HIDDEN);
+      }
+      nextRow = nextRow.nextSibling;
+    }
+  };
 })(window, document, window.Gr = window.Gr || {});

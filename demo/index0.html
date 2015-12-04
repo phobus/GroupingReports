@@ -55,6 +55,7 @@
   <script src="dataGenerator.js"></script>
   <script>
     var config = {
+      collapseLevel: 3,
       columns: [{
         name: 'txt_id2',
         alias: 'txt_id2',
@@ -114,9 +115,9 @@
     };
 
     var data = dataGenerator.generate([
-      [200, 200],
-      [20, 20],
-      [20, 20]
+      [2, 2],
+      [2, 2],
+      [2, 2]
     ], template, success);
   </script>
 </body>
