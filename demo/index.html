@@ -55,6 +55,7 @@
   <script src="dataGenerator.js"></script>
   <script>
     var config = {
+      collapseLevel: 1,
       columns: [{
         name: 'txt_id2',
         alias: 'txt_id2',
@@ -86,7 +87,7 @@
         name: 'virtual1',
         alias: 'virtual1',
         fn: function(columns) {
-          return ((columns.column3 / columns.column4) * 100).toFixed(2) + ' %';
+          return (columns.column3 / columns.column4) * 100;
         },
         width: '12%'
       }],
@@ -94,7 +95,7 @@
     };
 
     var element = document.getElementById('mytable');
-    var gt = new GRTable(element, config);
+    var gt = new Gr.DataTable(element, config);
 
     //Random data generation
     //like ajax call run success
@@ -110,12 +111,13 @@
     var success = function(data) {
       //Render data in table
       gt.render(data);
+
     };
 
     var data = dataGenerator.generate([
       [20, 20],
       [20, 20],
-      [200, 200]
+      [23, 23]
     ], template, success);
   </script>
 </body>
