@@ -62,16 +62,12 @@
 
 
     crono.start('groupBy data');
-
     data = gr.Data.grouping(this.config.columns, this.config.groupBy, data, this.config.total);
-    console.log(data);
     crono.stop('groupBy data');
 
 
     crono.start('renderTable');
-
     var table = this.renderTable(data);
-
     crono.stop('renderTable');
 
 
@@ -96,6 +92,10 @@
     //header row
     thead.appendChild(this.createRowAndCells('th', true, true));
 
+    if (this.config.total) {
+      data[0].key = this.config.total.alias;
+    }
+
     if (!this.config.total || this.config.total.position == 'top') {
       //no total or total top
       for (var i = 0, l = data.length; i < l; i++) {
@@ -110,7 +110,7 @@
       //row foot
       var text, cell, tfoot = document.createElement('tfoot'),
         row = this.createRowAndCells('td');
-
+      row.className = 'gr-total';
       //cells
       for (var i = 0, l = this.config.columns.length; i < l; i++) {
         cell = row.childNodes[i];
