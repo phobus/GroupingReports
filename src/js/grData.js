@@ -2,12 +2,13 @@
   'use strict';
 
   var DataGroup = function(groupBy, key, level) {
-    this.groupBy = groupBy;
-    this.key = key;
-    this.level = level || 0;
-
-    this.values = [];
-    this.aggregate = {};
+    this._data = {
+      groupBy: groupBy,
+      key: key,
+      level: level,
+      values: [],
+      aggregate: {}
+    };
   };
 
   DataGroup.prototype.init = function(columns, data) {
@@ -19,11 +20,11 @@
         data[column.name] = column.fn(data);
       } else {
         // store data in aggregate
-        this.aggregate[column.name] = [data[column.name]];
+        this._data.aggregate[column.name] = [data[column.name]];
       }
     }
     //push values
-    this.values.push(data);
+    this._data.values.push(data);
   };
 
   DataGroup.prototype.push = function(columns, data) {
@@ -35,31 +36,25 @@
         data[column.name] = column.fn(data);
       } else {
         // store data in aggregate
-        this.aggregate[column.name].push(data[column.name]);
+        this._data.aggregate[column.name].push(data[column.name]);
       }
     }
     //push values
-    this.values.push(data);
+    this._data.values.push(data);
   };
 
   DataGroup.prototype.reduce = function(aggregateColumns, virtualColumns) {
     var column;
     for (var i = 0, l = aggregateColumns.length; i < l; i++) {
       column = aggregateColumns[i];
-      this.aggregate[column.name] = gr.Data.aggregation(column.aggregate, this.aggregate[column.name]);
+      this._data.aggregate[column.name] = gr.Data.aggregation(column.aggregate, this._data.aggregate[column.name]);
     }
 
     for (var j = 0, m = virtualColumns.length; j < m; j++) {
       column = virtualColumns[j];
-      this.aggregate[column.name] = column.fn(this.aggregate);
+      this._data.aggregate[column.name] = column.fn(this._data.aggregate);
     }
-    return {
-      groupBy: this.groupBy,
-      key: this.key,
-      level: this.level,
-      values: this.values,
-      aggregate: this.aggregate
-    };
+    return this._data;
   };
 
   gr.Data = {
@@ -110,8 +105,7 @@
       for (var j = 0, m = r.length; j < m; j++) {
         if (level < groupBy.length - 1) {
           //Grouping childs
-          r[j].values = this.groupingLoop(columns, aggregateColumns, virtualColumns, groupBy, r[j].values, level + 1);
-          //r[j].count = r[j].values.length;
+          r[j]._data.values = this.groupingLoop(columns, aggregateColumns, virtualColumns, groupBy, r[j]._data.values, level + 1);
         }
         r[j] = r[j].reduce(aggregateColumns, virtualColumns);
       }

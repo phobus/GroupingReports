@@ -78,7 +78,8 @@
   DataTable.prototype.renderTable = function(data) {
     var table = document.createElement('table'),
       thead = document.createElement('thead'),
-      tbody = document.createElement('tbody');
+      tbody = document.createElement('tbody'),
+      batch = [];
 
     //table attributes
     table.className = this.config.cssClass;
@@ -101,33 +102,44 @@
       //no total or total top
       for (var i = 0, l = data.length; i < l; i++) {
         this.createBody(tbody, data[i], 0);
+        //this.createBody(batch, data[i], 0);
       }
     } else if (this.config.total && this.config.total.position == 'bottom') {
       //total bottom
-      for (var i = 0, l = data[0].values.length; i < l; i++) {
-        this.createBody(tbody, data[0].values[i], 0);
+      for (var j = 0, m = data[0].values.length; j < m; j++) {
+        this.createBody(tbody, data[0].values[j], 0);
+        //this.createBody(batch, data[0].values[j], 0);
       }
-
       //row foot
-      var text, cell, tfoot = document.createElement('tfoot'),
-        row = this.createRowAndCells('td');
-      row.className = 'gr-total';
-      //cells
-      for (var i = 0, l = this.config.columns.length; i < l; i++) {
-        cell = row.childNodes[i];
-        text = document.createTextNode(this._onCreateCellGroup(this.config.columns[i], data[0]));
-        cell.appendChild(text);
-      }
+      var tfoot = document.createElement('tfoot'),
+        row = this.createRowAndCells('td', false, false, data[0]);
+      row.className = this.CssClasses.TOTAL;
       tfoot.appendChild(row);
       table.appendChild(tfoot);
     }
-    //requestAnimationFrame(this.createBody.bind(this, tbody, data[0], 0));
-
+    //this._onDrawTableData(tbody, batch);
     return table;
   };
 
-  DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias) {
-    var column, cell, row = document.createElement('tr');
+  DataTable.prototype._onDrawTableData = function(tbody, batch) {
+    var index = 0,
+      l = batch.length;
+    var handle = window.requestInterval(function() {
+      //console.log(handle);
+      for (var i = 0; i < 10000; i++) {
+        if (index < l) {
+          tbody.appendChild(batch[index]);
+        } else {
+          window.clearRequestInterval(handle);
+          break;
+        }
+        ++index;
+      }
+    }, 1);
+  };
+
+  DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias, data) {
+    var text, column, cell, row = document.createElement('tr');
     for (var i = 0, l = this.config.columns.length; i < l; i++) {
       column = this.config.columns[i];
       cell = document.createElement(tag);
@@ -135,16 +147,21 @@
       if (setWidth && column.width) {
         cell.style.width = column.width;
       }
-
-      //text alias
       if (setAlias) {
-        var text = document.createTextNode(this._onCreateCellHeader(column));
+        //text alias
+        text = document.createTextNode(this._onCreateCellHeader(column));
         cell.appendChild(text);
       }
 
-      //config column styles
+      //footer
+      if (data) {
+        text = document.createTextNode(this._onCreateCellGroup(column, data));
+        cell.appendChild(text);
+      }
+
+      //styles
       if (column.cssClass) {
-        cell.classList.add(column.cssClass);
+        cell.className = column.cssClass;
       }
       row.appendChild(cell);
     }
@@ -152,48 +169,48 @@
   };
 
   DataTable.prototype.getMaxLevel = function() {
-      return (this.config.total && this.config.total.position == 'top') ?
-        this.config.groupBy.length + 1 :
-        this.config.groupBy.length;
-    },
+    return (this.config.total && this.config.total.position == 'top') ?
+      this.config.groupBy.length + 1 :
+      this.config.groupBy.length;
+  };
 
-    DataTable.prototype.buildCache = function() {
-      var row, control,
-        maxLevel = this.getMaxLevel(),
-        collapse = false;
-      this._baseRows = [];
+  DataTable.prototype.buildCache = function() {
+    var row, control,
+      maxLevel = this.getMaxLevel(),
+      collapse = false;
+    this._baseRows = [];
 
-      for (var level = 0; level <= maxLevel; level++) {
-        //tree control
-        control = document.createElement('span');
-        control.className = this.CssClasses.CONTROL;
+    for (var level = 0; level <= maxLevel; level++) {
+      //tree control
+      control = document.createElement('span');
+      control.className = this.CssClasses.CONTROL;
 
-        //Arrows
-        if (level < maxLevel) {
-          if (level < this.config.collapseLevel) {
-            control.classList.add(this.CssClasses.ARROW_BOTTOM);
-          } else {
-            control.classList.add(this.CssClasses.ARROW_RIGHT);
-          }
+      //Arrows
+      if (level < maxLevel) {
+        if (level < this.config.collapseLevel) {
+          control.classList.add(this.CssClasses.ARROW_BOTTOM);
+        } else {
+          control.classList.add(this.CssClasses.ARROW_RIGHT);
         }
-
-        //padding
-        if (level !== 0) {
-          control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
-        }
-
-        //level data row
-        row = this.createRowAndCells('td');
-        row.firstChild.appendChild(control);
-
-        //collapseLevel
-        if (level > this.config.collapseLevel) {
-          row.classList.add(this.CssClasses.HIDDEN);
-        }
-
-        this._baseRows.push(row);
       }
-    };
+
+      //padding
+      if (level !== 0) {
+        control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
+      }
+
+      //level data row
+      row = this.createRowAndCells('td');
+      row.firstChild.appendChild(control);
+
+      //collapseLevel
+      if (level > this.config.collapseLevel) {
+        row.classList.add(this.CssClasses.HIDDEN);
+      }
+
+      this._baseRows.push(row);
+    }
+  };
 
   DataTable.prototype.cloneRow = function(fn, data, level) {
     var text, cell, row = this._baseRows[level].cloneNode(true);
@@ -206,8 +223,57 @@
     return row;
   };
 
-  DataTable.prototype.createBody = function(tbody, data, level) {
-    var row, child;
+  DataTable.prototype.createBody2 = function(batch, data, level) {
+    var row, child, nextLevel = level + 1;
+    if (data.values) {
+      // groupBy rows
+      /*row = {
+        addEventListener: function() {},
+        appendChild: function() {},
+        classList: {
+          add: function() {}
+        }
+      };*/
+      row = this.cloneRow(this._onCreateCellGroup, data, level);
+      row.classList.add(this.CssClasses.TOTAL);
+
+      // groupBy rows event
+      row.addEventListener('click', this.dataRowClickHandler.bind(this));
+      row.level = level;
+      row.rowTree = [];
+      if (level >= this.config.collapseLevel) {
+        row.collapse = true;
+      }
+      batch.appendChild(row);
+      //batch.push(row);
+
+      // groupBy values
+      if (data.values[0].values) {
+        for (var i = 0, l = data.values.length; i < l; i++) {
+          child = this.createBody(batch, data.values[i], nextLevel);
+          row.rowTree.push(child);
+        }
+      } else {
+        // Data rows
+        for (var i = 0, l = data.values.length; i < l; i++) {
+          /*child = {
+            addEventListener: function() {},
+            appendChild: function() {}
+          };*/
+          child = this.cloneRow(this._onCreateCellData, data.values[i], nextLevel);
+          batch.appendChild(child);
+          //batch.push(child);
+          row.rowTree.push(child);
+        }
+        //window.requestAnimFrame(function() {batch.appendChild(row);});
+      }
+    }
+    return row;
+
+  };
+
+  DataTable.prototype.createBody = function(batch, data, level) {
+    var row, child, nextLevel = level + 1;
     if (data.values) {
       // groupBy rows
       row = this.cloneRow(this._onCreateCellGroup, data, level);
@@ -220,19 +286,19 @@
       if (level >= this.config.collapseLevel) {
         row.collapse = true;
       }
-      tbody.appendChild(row);
-
+      batch.appendChild(row);
       // groupBy values
-      for (var k = 0, l = data.values.length; k < l; k++) {
-        child = this.createBody(tbody, data.values[k], level + 1);
+      for (var i = 0, l = data.values.length; i < l; i++) {
+        child = this.createBody(batch, data.values[i], nextLevel);
         row.rowTree.push(child);
-        //requestAnimationFrame(this.createBody.bind(this, tbody, data.values[k], level + 1));
       }
     } else {
       // Data rows
       row = this.cloneRow(this._onCreateCellData, data, level);
-      tbody.appendChild(row);
+      batch.appendChild(row);
+      //window.requestAnimFrame(function() {batch.appendChild(row);});
     }
+
     return row;
   };
 
