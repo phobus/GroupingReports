@@ -64,7 +64,7 @@
     crono.start('groupBy data');
 
     data = gr.Data.grouping(this.config.columns, this.config.groupBy, data, this.config.total);
-
+    console.log(data);
     crono.stop('groupBy data');
 
 
@@ -87,18 +87,27 @@
     table.className = this.config.cssClass;
     table.appendChild(thead);
     table.appendChild(tbody);
+    //put the table in DOM
     this.container.appendChild(table);
 
     // cache for cloning rows :D
     this.buildCache();
 
+    //header row
     thead.appendChild(this.createRowAndCells('th', true, true));
 
-    for (var i = 0, l = data.length; i < l; i++) {
-      this.createBody(tbody, data[i], 0);
-    }
+    if (!this.config.total || this.config.total.position == 'top') {
+      //no total or total top
+      for (var i = 0, l = data.length; i < l; i++) {
+        this.createBody(tbody, data[i], 0);
+      }
+    } else if (this.config.total && this.config.total.position == 'bottom') {
+      //total bottom
+      for (var i = 0, l = data[0].values.length; i < l; i++) {
+        this.createBody(tbody, data[0].values[i], 0);
+      }
 
-    if (this.config.total && this.config.total.position == 'bottom') {
+      //row foot
       var text, cell, tfoot = document.createElement('tfoot'),
         row = this.createRowAndCells('td');
 
@@ -141,43 +150,49 @@
     return row;
   };
 
-  DataTable.prototype.buildCache = function() {
-    var row, control,
-      maxLevel = this.config.total ? this.config.groupBy.length + 1 : this.config.groupBy.length,
-      collapse = false;
-    this._baseRows = [];
+  DataTable.prototype.getMaxLevel = function() {
+      return (this.config.total && this.config.total.position == 'top') ?
+        this.config.groupBy.length + 1 :
+        this.config.groupBy.length;
+    },
 
-    for (var level = 0; level <= maxLevel; level++) {
-      //tree control
-      control = document.createElement('span');
-      control.className = this.CssClasses.CONTROL;
+    DataTable.prototype.buildCache = function() {
+      var row, control,
+        maxLevel = this.getMaxLevel(),
+        collapse = false;
+      this._baseRows = [];
 
-      //Arrows
-      if (level < maxLevel) {
-        if (level < this.config.collapseLevel) {
-          control.classList.add(this.CssClasses.ARROW_BOTTOM);
-        } else {
-          control.classList.add(this.CssClasses.ARROW_RIGHT);
+      for (var level = 0; level <= maxLevel; level++) {
+        //tree control
+        control = document.createElement('span');
+        control.className = this.CssClasses.CONTROL;
+
+        //Arrows
+        if (level < maxLevel) {
+          if (level < this.config.collapseLevel) {
+            control.classList.add(this.CssClasses.ARROW_BOTTOM);
+          } else {
+            control.classList.add(this.CssClasses.ARROW_RIGHT);
+          }
         }
+
+        //padding
+        if (level !== 0) {
+          control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
+        }
+
+        //level data row
+        row = this.createRowAndCells('td');
+        row.firstChild.appendChild(control);
+
+        //collapseLevel
+        if (level > this.config.collapseLevel) {
+          row.classList.add(this.CssClasses.HIDDEN);
+        }
+
+        this._baseRows.push(row);
       }
-
-      //padding
-      if (level !== 0) {
-        control.style.padding = '0 0 0 ' + (level * this.config.tree.padding) + this.config.tree.unit;
-      }
-
-      //level data row
-      row = this.createRowAndCells('td');
-      row.firstChild.appendChild(control);
-
-      //collapseLevel
-      if (level > this.config.collapseLevel) {
-        row.classList.add(this.CssClasses.HIDDEN);
-      }
-
-      this._baseRows.push(row);
-    }
-  };
+    };
 
   DataTable.prototype.cloneRow = function(fn, data, level) {
     var text, cell, row = this._baseRows[level].cloneNode(true);

@@ -23,10 +23,17 @@
     }
   };
 
-  gr.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
-  var uniqueId = function() {
-    return ++this.lastId;
+  gr.requestAnimationFrame = window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function(cb) {
+      return window.setTimeout(cb, 1000 / 60);
+    };
+    
+  var lastId = 0;
+  gr.uniqueId = function() {
+    return ++lastId;
   };
+
 })(window, document, window.gr = window.gr || {});

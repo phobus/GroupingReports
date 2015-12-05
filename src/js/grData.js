@@ -2,8 +2,8 @@
   'use strict';
 
   var DataGroup = function(groupBy, key, level) {
-    this.groupBy = groupBy || 'Gran Total';
-    this.key = key || '__ALL__';
+    this.groupBy = groupBy;
+    this.key = key;
     this.level = level || 0;
     this.count = 0;
 
@@ -43,18 +43,6 @@
     this.values.push(data);
   };
 
-  DataGroup.prototype.getValue = function(column, data) {
-    var value;
-    if (column.virtual) {
-      value = column.fn(data);
-      // store virtual column in data
-      data[column.name] = value;
-    } else {
-      value = data[column.name];
-    }
-    return value;
-  };
-
   DataGroup.prototype.reduce = function(aggregateColumns, virtualColumns) {
     var column;
     for (var i = 0, l = aggregateColumns.length; i < l; i++) {
@@ -87,12 +75,7 @@
         }
       }
 
-      var grouping;
-      if (total) {
-        grouping = ['__ALL__'].concat(groupBy);
-      } else {
-        grouping = groupBy;
-      }
+      var grouping = total ? ['__ALL__'].concat(groupBy) : groupBy;
 
       return this.groupingLoop(avColumns, aggregateColumns, virtualColumns, grouping, data, 0);
     },
@@ -122,7 +105,7 @@
         if (level < groupBy.length - 1) {
           //Grouping childs
           r[j].values = this.groupingLoop(columns, aggregateColumns, virtualColumns, groupBy, r[j].values, level + 1);
-          r[j].count = r[j].values.length;
+          //r[j].count = r[j].values.length;
         }
         r[j].reduce(aggregateColumns, virtualColumns);
       }
