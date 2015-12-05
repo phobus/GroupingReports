@@ -16,7 +16,10 @@ Virtual columns
 * collapseLevel hide details
 TO DO
 
+* requestAnimationFrame
+
 ## example config:
+```javascript
 var config = {
   columns: [{
     name: 'txt_id2',
@@ -44,5 +47,4 @@ var config = {
   }],
   groupBy: ['txt_id0', 'txt_id1']
 };
-
-* requestAnimationFrame
+```
