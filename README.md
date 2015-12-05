@@ -13,7 +13,36 @@ Virtual columns
 > https://developer.mozilla.org/es/docs/Web/CSS/table-layout
 
 * cloneNode for creating rows. Less repetitive procesing.
-
+* collapseLevel hide details
 TO DO
+
+## example config:
+var config = {
+  columns: [{
+    name: 'txt_id2',
+    alias: 'txt_id2',
+    cssClass: 'gr-no-numeric',
+    grouping: true
+  }, {
+    name: 'column1',
+    alias: 'column1',
+    aggregate: 'sum',
+    width: '12%'
+  }, {
+    name: 'column2',
+    alias: 'column2',
+    aggregate: 'sum',
+    width: '12%'
+  }, {
+    virtual: true,
+    name: 'virtual1',
+    alias: 'virtual1',
+    fn: function(columns) {
+      return (columns.column1 / columns.column2) * 100;
+    },
+    width: '12%'
+  }],
+  groupBy: ['txt_id0', 'txt_id1']
+};
 
 * requestAnimationFrame

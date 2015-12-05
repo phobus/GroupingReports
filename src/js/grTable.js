@@ -63,6 +63,7 @@
 
     crono.start('groupBy data');
     data = gr.Data.grouping(this.config.columns, this.config.groupBy, data, this.config.total);
+    console.log(data);
     crono.stop('groupBy data');
 
 

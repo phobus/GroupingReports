@@ -5,7 +5,6 @@
     this.groupBy = groupBy;
     this.key = key;
     this.level = level || 0;
-    this.count = 0;
 
     this.values = [];
     this.aggregate = {};
@@ -54,6 +53,13 @@
       column = virtualColumns[j];
       this.aggregate[column.name] = column.fn(this.aggregate);
     }
+    return {
+      groupBy: this.groupBy,
+      key: this.key,
+      level: this.level,
+      values: this.values,
+      aggregate: this.aggregate
+    };
   };
 
   gr.Data = {
@@ -107,7 +113,7 @@
           r[j].values = this.groupingLoop(columns, aggregateColumns, virtualColumns, groupBy, r[j].values, level + 1);
           //r[j].count = r[j].values.length;
         }
-        r[j].reduce(aggregateColumns, virtualColumns);
+        r[j] = r[j].reduce(aggregateColumns, virtualColumns);
       }
       return r;
     },
