@@ -16,8 +16,6 @@ Virtual columns
 * requestAnimationFrame
 * collapseLevel hide details rows
 
-* requestAnimationFrame
-
 ## example config:
 ```javascript
 var config = {
@@ -47,7 +45,3 @@ var config = {
   }],
   groupBy: ['txt_id0', 'txt_id1']
 };
-<<<<<<< HEAD
-```
-=======
->>>>>>> raf
