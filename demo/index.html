@@ -11,14 +11,15 @@
   <link rel="stylesheet" href="../src/css/grList.css">
 
   <style>
-    .hidden {
-      display: none !important;
-    }
+
   </style>
 </head>
 
 <body>
   <div class="gr-wrapper">
+    <div class="gr-meter">
+      <div class="gr-bar"></div>
+    </div>
     <header class="gr-header">
       <div class="gr-row">
         <span class="gr-title">Title</span>
@@ -116,12 +117,10 @@
     };
 
     var data = dataGenerator.generate([
-      [2, 2],
-      [2, 2],
-      [2, 2]
+      [20, 20],
+      [20, 20],
+      [20, 20]
     ], template, success);
-
-
   </script>
 </body>
 

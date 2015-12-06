@@ -126,6 +126,7 @@
     var success = function() {
       this.runEvents = true;
       this.table.classList.remove(this.CssClasses.PROGRESS);
+      document.getElementsByClassName('gr-meter')[0].classList.add('gr-visibility');
     };
 
     gr.loop(batch, function(item) {
@@ -138,7 +139,7 @@
         item.row = this.cloneRow(this._onCreateCellData, item.data, item.level);
       }
       tbody.appendChild(item.row);
-    }, 100, this, success);
+    }, 16, this, success);
   };
 
   DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias, total) {
@@ -304,6 +305,7 @@
     if (node) {
       this.runEvents = false;
       requestAnimationFrame(function() {
+        document.getElementsByClassName('gr-meter')[0].classList.remove('gr-visibility');
         this.table.classList.add(this.CssClasses.PROGRESS);
         requestAnimationFrame(this.toggleRows.bind(this, node));
       }.bind(this));
@@ -314,6 +316,7 @@
 
   DataTable.prototype.toggleRows = function(node) {
     var success = function() {
+      document.getElementsByClassName('gr-meter')[0].classList.add('gr-visibility');
       var control = node.row.firstChild.firstChild;
       control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
       control.classList.toggle(this.CssClasses.ARROW_RIGHT);
