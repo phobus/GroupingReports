@@ -23,17 +23,46 @@
     }
   };
 
-  gr.requestAnimationFrame = window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function(cb) {
-      return window.setTimeout(cb, 1000 / 60);
-    };
-    
-  var lastId = 0;
-  gr.uniqueId = function() {
-    return ++lastId;
-  };
+  gr.loop = function(array, fn, maxTimePerChunk, context, success) {
+    crono.start('loop');
+    context = context || window;
+    var index = 0,
+      maxTimePerChunk = maxTimePerChunk || 100,
+      l = array.length;
+
+    function now() {
+      return new Date().getTime();
+    }
+    var nchunk = 0;
+
+    function doChunk() {
+      crono.start('doChunk');
+      nchunk = 0
+      var startTime = now();
+      while (index < l && (now() - startTime) <= maxTimePerChunk) {
+        // callback called with args (value, index, array)
+        fn.call(context, array[index], index, array);
+        ++nchunk;
+        ++index;
+      }
+      console.log('requestAnimationFrame : nchunk ' + nchunk);
+      crono.stop('doChunk');
+      if (index < array.length) {
+        // set Timeout for async iteration
+        //setTimeout(doChunk, 1);
+        requestAnimationFrame(doChunk);
+      } else {
+        if (success) {
+          success.call(context);
+        }
+        crono.stop('loop');
+      }
+    }
+    doChunk();
+  }
+
+
+  /** https://gist.github.com/joelambert/1002116 */
+
 
 })(window, document, window.gr = window.gr || {});
