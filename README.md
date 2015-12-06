@@ -45,6 +45,7 @@ var config = {
   }],
   groupBy: ['txt_id0', 'txt_id1']
 };
+```
 
 ## demo
 
