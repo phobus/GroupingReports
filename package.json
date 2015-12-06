@@ -27,6 +27,9 @@
   "bugs": {
     "url": "https://github.com/phobus/GroupingReports/issues"
   },
+  "engines": {
+    "node": "0.12.7"
+  },
   "dependencies": {
     "connect": "^3.4.0",
     "serve-static": "^1.10.0"
