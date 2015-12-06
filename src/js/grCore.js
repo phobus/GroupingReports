@@ -23,71 +23,45 @@
     }
   };
 
-  /** https://gist.github.com/joelambert/1002116 */
-  // requestAnimationFrame() shim by Paul Irish
-  // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-  window.requestAnimFrame = (function() {
-    return window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.oRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function( /* function */ callback, /* DOMElement */ element) {
-        window.setTimeout(callback, 1000 / 60);
-      };
-  })();
+  // last two args are optional
+  gr.loop = function(array, fn, context) {
+    crono.start('loop');
+    context = context || window;
+    var index = 0,
+      maxTimePerChunk = 70,
+      l = array.length;
 
-  /**
-   * Behaves the same as setInterval except uses requestAnimationFrame() where possible for better performance
-   * @param {function} fn The callback function
-   * @param {int} delay The delay in milliseconds
-   */
-  window.requestInterval = function(fn, delay) {
-    if (!window.requestAnimationFrame &&
-      !window.webkitRequestAnimationFrame &&
-      !(window.mozRequestAnimationFrame && window.mozCancelRequestAnimationFrame) && // Firefox 5 ships without cancel support
-      !window.oRequestAnimationFrame &&
-      !window.msRequestAnimationFrame)
-      return window.setInterval(fn, delay);
+    function now() {
+      return new Date().getTime();
+    }
+    var nchunk = 0;
 
-    var start = new Date().getTime(),
-      handle = new Object();
-
-    function loop() {
-      var current = new Date().getTime(),
-        delta = current - start;
-
-      if (delta >= delay) {
-        //console.log(delta);
-        fn.call();
-        start = new Date().getTime();
+    function doChunk() {
+      crono.start('doChunk');
+      nchunk = 0
+      var startTime = now();
+      while (index < l && (now() - startTime) <= maxTimePerChunk) {
+        // callback called with args (value, index, array)
+        fn.call(context, array[index], index, array);
+        ++nchunk;
+        ++index;
       }
-
-      handle.value = requestAnimFrame(loop);
-    };
-
-    handle.value = requestAnimFrame(loop);
-    return handle;
+      console.log('requestAnimationFrame : nchunk ' + nchunk);
+      crono.stop('doChunk');
+      if (index < array.length) {
+        // set Timeout for async iteration
+        //setTimeout(doChunk, 1);
+        requestAnimationFrame(doChunk);
+      } else {
+        crono.stop('loop');
+        crono.stop('report');
+      }
+    }
+    doChunk();
   }
 
-  /**
-   * Behaves the same as clearInterval except uses cancelRequestAnimationFrame() where possible for better performance
-   * @param {int|object} fn The callback function
-   */
-  window.clearRequestInterval = function(handle) {
-    window.cancelAnimationFrame ? window.cancelAnimationFrame(handle.value) :
-      window.webkitCancelAnimationFrame ? window.webkitCancelAnimationFrame(handle.value) :
-      window.webkitCancelRequestAnimationFrame ? window.webkitCancelRequestAnimationFrame(handle.value) : /* Support for legacy API */
-      window.mozCancelRequestAnimationFrame ? window.mozCancelRequestAnimationFrame(handle.value) :
-      window.oCancelRequestAnimationFrame ? window.oCancelRequestAnimationFrame(handle.value) :
-      window.msCancelRequestAnimationFrame ? window.msCancelRequestAnimationFrame(handle.value) :
-      clearInterval(handle);
-  };
 
-  var lastId = 0;
-  gr.uniqueId = function() {
-    return ++lastId;
-  };
+  /** https://gist.github.com/joelambert/1002116 */
 
 
 })(window, document, window.gr = window.gr || {});

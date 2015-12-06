@@ -56,6 +56,7 @@
   };
 
   DataTable.prototype.render = function(data) {
+    crono.start('report');
 
     crono.start('render');
     var l = data.length;
@@ -68,7 +69,7 @@
 
 
     crono.start('renderTable');
-    var table = this.renderTable(data);
+    this.renderTable(data);
     crono.stop('renderTable');
 
 
@@ -78,8 +79,7 @@
   DataTable.prototype.renderTable = function(data) {
     var table = document.createElement('table'),
       thead = document.createElement('thead'),
-      tbody = document.createElement('tbody'),
-      batch = [];
+      tbody = document.createElement('tbody');
 
     //table attributes
     table.className = this.config.cssClass;
@@ -90,6 +90,7 @@
 
     // cache for cloning rows :D
     this.buildCache();
+    this.rowIndex = [];
 
     //header row
     thead.appendChild(this.createRowAndCells('th', true, true));
@@ -97,48 +98,40 @@
     if (this.config.total) {
       data[0].key = this.config.total.alias;
     }
-
+    //table body
     if (!this.config.total || this.config.total.position == 'top') {
-      //no total or total top
-      for (var i = 0, l = data.length; i < l; i++) {
-        this.createBody(tbody, data[i], 0);
-        //this.createBody(batch, data[i], 0);
-      }
+      // table body - no total or total top
+      this.createBody(tbody, data, 0);
+
     } else if (this.config.total && this.config.total.position == 'bottom') {
-      //total bottom
-      for (var j = 0, m = data[0].values.length; j < m; j++) {
-        this.createBody(tbody, data[0].values[j], 0);
-        //this.createBody(batch, data[0].values[j], 0);
-      }
-      //row foot
+      // table body - total bottom
+      this.createBody(tbody, data[0].values, 0);
+
+      // table foot - total bottom
       var tfoot = document.createElement('tfoot'),
         row = this.createRowAndCells('td', false, false, data[0]);
       row.className = this.CssClasses.TOTAL;
       tfoot.appendChild(row);
       table.appendChild(tfoot);
     }
-    //this._onDrawTableData(tbody, batch);
+
+    //requestAnimationFrame batch rows
+    gr.loop(batch, function(item) {
+      if (item.total) {
+        item.row = this.cloneRow(this._onCreateCellGroup, item.data, item.level);
+        item.row.classList.add(this.CssClasses.TOTAL);
+        // groupBy rows event
+        item.row.addEventListener('click', this.dataRowClickHandler.bind(this));
+      } else {
+        item.row = this.cloneRow(this._onCreateCellData, item.data, item.level);
+      }
+      tbody.appendChild(item.row);
+    }, this);
+
     return table;
   };
 
-  DataTable.prototype._onDrawTableData = function(tbody, batch) {
-    var index = 0,
-      l = batch.length;
-    var handle = window.requestInterval(function() {
-      //console.log(handle);
-      for (var i = 0; i < 10000; i++) {
-        if (index < l) {
-          tbody.appendChild(batch[index]);
-        } else {
-          window.clearRequestInterval(handle);
-          break;
-        }
-        ++index;
-      }
-    }, 1);
-  };
-
-  DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias, data) {
+  DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias, total) {
     var text, column, cell, row = document.createElement('tr');
     for (var i = 0, l = this.config.columns.length; i < l; i++) {
       column = this.config.columns[i];
@@ -154,8 +147,8 @@
       }
 
       //footer
-      if (data) {
-        text = document.createTextNode(this._onCreateCellGroup(column, data));
+      if (total) {
+        text = document.createTextNode(this._onCreateCellGroup(column, total));
         cell.appendChild(text);
       }
 
@@ -223,83 +216,37 @@
     return row;
   };
 
-  DataTable.prototype.createBody2 = function(batch, data, level) {
-    var row, child, nextLevel = level + 1;
-    if (data.values) {
-      // groupBy rows
-      /*row = {
-        addEventListener: function() {},
-        appendChild: function() {},
-        classList: {
-          add: function() {}
-        }
-      };*/
-      row = this.cloneRow(this._onCreateCellGroup, data, level);
-      row.classList.add(this.CssClasses.TOTAL);
-
-      // groupBy rows event
-      row.addEventListener('click', this.dataRowClickHandler.bind(this));
-      row.level = level;
-      row.rowTree = [];
-      if (level >= this.config.collapseLevel) {
-        row.collapse = true;
-      }
-      batch.appendChild(row);
-      //batch.push(row);
-
-      // groupBy values
-      if (data.values[0].values) {
-        for (var i = 0, l = data.values.length; i < l; i++) {
-          child = this.createBody(batch, data.values[i], nextLevel);
-          row.rowTree.push(child);
-        }
-      } else {
-        // Data rows
-        for (var i = 0, l = data.values.length; i < l; i++) {
-          /*child = {
-            addEventListener: function() {},
-            appendChild: function() {}
-          };*/
-          child = this.cloneRow(this._onCreateCellData, data.values[i], nextLevel);
-          batch.appendChild(child);
-          //batch.push(child);
-          row.rowTree.push(child);
-        }
-        //window.requestAnimFrame(function() {batch.appendChild(row);});
-      }
-    }
-    return row;
-
+  DataTable.prototype.createNode = function(data, level) {
+    return {
+      data: data,
+      level: level
+    };
   };
 
   DataTable.prototype.createBody = function(batch, data, level) {
-    var row, child, nextLevel = level + 1;
-    if (data.values) {
-      // groupBy rows
-      row = this.cloneRow(this._onCreateCellGroup, data, level);
-      row.classList.add(this.CssClasses.TOTAL);
+    var nextLevel = level + 1,
+      childs = [],
+      node;
+    for (var i = 0, l = data.length; i < l; i++) {
+      if (data[i].values) {
+        node = this.createNode(data[i], level);
+        node.total = true;
+        batch.push(node);
+        childs.push(node);
+        this.rowIndex.push(node);
 
-      // groupBy rows event
-      row.addEventListener('click', this.dataRowClickHandler.bind(this));
-      row.level = level;
-      row.rowTree = [];
-      if (level >= this.config.collapseLevel) {
-        row.collapse = true;
+        if (level >= this.config.collapseLevel) {
+          node.collapse = true;
+        }
+
+        node.childs = this.createBody(batch, data[i].values, nextLevel);
+      } else {
+        node = this.createNode(data[i], level);
+        batch.push(node);
+        childs.push(node);
       }
-      batch.appendChild(row);
-      // groupBy values
-      for (var i = 0, l = data.values.length; i < l; i++) {
-        child = this.createBody(batch, data.values[i], nextLevel);
-        row.rowTree.push(child);
-      }
-    } else {
-      // Data rows
-      row = this.cloneRow(this._onCreateCellData, data, level);
-      batch.appendChild(row);
-      //window.requestAnimFrame(function() {batch.appendChild(row);});
     }
-
-    return row;
+    return childs;
   };
 
   DataTable.prototype._onCreateCellHeader = function(column) {
@@ -307,7 +254,7 @@
   };
 
   DataTable.prototype._onCreateCellData = function(column, data) {
-    /*if (column.name != 'txt_id2') {
+    /*if (column. != '') {
       return data[column.name].toFixed(2).toLocaleString();
     }*/
     return data[column.name];
@@ -315,16 +262,8 @@
 
   DataTable.prototype._onCreateCellGroup = function(column, data) {
     if (column.aggregate && data.aggregate) {
-      /*return data.aggregate[column.name].toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });*/
       return data.aggregate[column.name];
     } else if (column.virtual) {
-      /*return data.aggregate[column.name].toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });*/
       return data.aggregate[column.name];
     } else {
       return data.key;
@@ -337,47 +276,51 @@
   DataTable.prototype.closestRow = function(e) {
     while (e) {
       if (e.tagName == 'TR') {
-        return e;
+        for (var i = 0, l = this.rowIndex.length; i < l; i++) {
+          if (this.rowIndex[i].row == e) {
+            return this.rowIndex[i];
+          }
+        }
       }
       e = e.parentElement;
     }
   };
 
   DataTable.prototype.dataRowClickHandler = function(event) {
-    var row = this.closestRow(event.target);
-    if (row) {
-      if (row.collapse) {
+    var node = this.closestRow(event.target);
+    if (node) {
+      if (node.collapse) {
         crono.start('expandRows');
-        row.collapse = false;
-        this.expandRows(row);
+        node.collapse = false;
+        this.expandRows(node);
         crono.stop('expandRows');
       } else {
         crono.start('collapseRows');
-        row.collapse = true;
-        this.collapseRows(row, 0);
+        node.collapse = true;
+        this.collapseRows(node);
         crono.stop('collapseRows');
       }
-      var control = row.firstChild.firstChild;
+      var control = node.row.firstChild.firstChild;
       control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
       control.classList.toggle(this.CssClasses.ARROW_RIGHT);
     }
   };
 
-  DataTable.prototype.collapseRows = function(row, isChild) {
-    if (row.rowTree) {
-      for (var i = 0, l = row.rowTree.length; i < l; i++) {
-        row.rowTree[i].classList.add(this.CssClasses.HIDDEN);
-        this.collapseRows(row.rowTree[i]);
+  DataTable.prototype.collapseRows = function(node) {
+    if (node.childs) {
+      for (var i = 0, l = node.childs.length; i < l; i++) {
+        node.childs[i].row.classList.add(this.CssClasses.HIDDEN);
+        this.collapseRows(node.childs[i]);
       }
     }
   };
 
-  DataTable.prototype.expandRows = function(row) {
-    if (row.rowTree) {
-      for (var i = 0, l = row.rowTree.length; i < l; i++) {
-        row.rowTree[i].classList.remove(this.CssClasses.HIDDEN);
-        if (!row.rowTree[i].collapse) {
-          this.expandRows(row.rowTree[i]);
+  DataTable.prototype.expandRows = function(node) {
+    if (node.childs) {
+      for (var i = 0, l = node.childs.length; i < l; i++) {
+        node.childs[i].row.classList.remove(this.CssClasses.HIDDEN);
+        if (!node.childs[i].collapse) {
+          this.expandRows(node.childs[i]);
         }
       }
     }
