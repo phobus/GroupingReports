@@ -23,12 +23,11 @@
     }
   };
 
-  // last two args are optional
-  gr.loop = function(array, fn, context) {
+  gr.loop = function(array, fn, maxTimePerChunk, context, success) {
     crono.start('loop');
     context = context || window;
     var index = 0,
-      maxTimePerChunk = 70,
+      maxTimePerChunk = maxTimePerChunk || 100,
       l = array.length;
 
     function now() {
@@ -53,8 +52,10 @@
         //setTimeout(doChunk, 1);
         requestAnimationFrame(doChunk);
       } else {
+        if (success) {
+          success.call(context);
+        }
         crono.stop('loop');
-        crono.stop('report');
       }
     }
     doChunk();

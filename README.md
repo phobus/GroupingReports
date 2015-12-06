@@ -13,8 +13,8 @@ Virtual columns
 > https://developer.mozilla.org/es/docs/Web/CSS/table-layout
 
 * cloneNode for creating rows. Less repetitive procesing.
-* collapseLevel hide details
-TO DO
+* requestAnimationFrame
+* collapseLevel hide details rows
 
 ## example config:
 var config = {
@@ -44,5 +44,3 @@ var config = {
   }],
   groupBy: ['txt_id0', 'txt_id1']
 };
-
-* requestAnimationFrame

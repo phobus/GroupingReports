@@ -7,7 +7,7 @@
 
   var baseConfig = {
     /** @type {String} table css classes */
-    cssClass: 'gr-table gr-shadow-2dp',
+    cssClass: 'gr-table gr-shadow-2dp gr-progress',
 
     /** @type {Number} collapse level */
     collapseLevel: 1,
@@ -38,6 +38,7 @@
    * @param  json config
    */
   var DataTable = function(element, config) {
+    this.runEvents = false;
     this.container = element;
 
     var defaultConfig = gr.clone(baseConfig);
@@ -49,6 +50,7 @@
 
   DataTable.prototype.CssClasses = {
     HIDDEN: 'gr-hidden',
+    PROGRESS: 'gr-progress',
     TOTAL: 'gr-total',
     CONTROL: 'gr-control',
     ARROW_BOTTOM: 'gr-arrow-bottom',
@@ -56,8 +58,6 @@
   };
 
   DataTable.prototype.render = function(data) {
-    crono.start('report');
-
     crono.start('render');
     var l = data.length;
 
@@ -69,18 +69,19 @@
 
 
     crono.start('renderTable');
-    this.renderTable(data);
+    this.createTable(data);
     crono.stop('renderTable');
 
 
     crono.stop('render', l);
   };
 
-  DataTable.prototype.renderTable = function(data) {
+  DataTable.prototype.createTable = function(data) {
     var table = document.createElement('table'),
       thead = document.createElement('thead'),
-      tbody = document.createElement('tbody');
-
+      tbody = document.createElement('tbody'),
+      batch = [];
+    this.table = table;
     //table attributes
     table.className = this.config.cssClass;
     table.appendChild(thead);
@@ -101,11 +102,11 @@
     //table body
     if (!this.config.total || this.config.total.position == 'top') {
       // table body - no total or total top
-      this.createBody(tbody, data, 0);
+      this.createBody(batch, data, 0);
 
     } else if (this.config.total && this.config.total.position == 'bottom') {
       // table body - total bottom
-      this.createBody(tbody, data[0].values, 0);
+      this.createBody(batch, data[0].values, 0);
 
       // table foot - total bottom
       var tfoot = document.createElement('tfoot'),
@@ -116,6 +117,17 @@
     }
 
     //requestAnimationFrame batch rows
+    this.animationFrameCreateTable(tbody, batch);
+
+    return table;
+  };
+
+  DataTable.prototype.animationFrameCreateTable = function(tbody, batch) {
+    var success = function() {
+      this.runEvents = true;
+      this.table.classList.remove(this.CssClasses.PROGRESS);
+    };
+
     gr.loop(batch, function(item) {
       if (item.total) {
         item.row = this.cloneRow(this._onCreateCellGroup, item.data, item.level);
@@ -126,9 +138,7 @@
         item.row = this.cloneRow(this._onCreateCellData, item.data, item.level);
       }
       tbody.appendChild(item.row);
-    }, this);
-
-    return table;
+    }, 100, this, success);
   };
 
   DataTable.prototype.createRowAndCells = function(tag, setWidth, setAlias, total) {
@@ -287,43 +297,75 @@
   };
 
   DataTable.prototype.dataRowClickHandler = function(event) {
+    if (!this.runEvents) {
+      return;
+    }
     var node = this.closestRow(event.target);
     if (node) {
-      if (node.collapse) {
-        crono.start('expandRows');
-        node.collapse = false;
-        this.expandRows(node);
-        crono.stop('expandRows');
-      } else {
-        crono.start('collapseRows');
-        node.collapse = true;
-        this.collapseRows(node);
-        crono.stop('collapseRows');
-      }
+      this.runEvents = false;
+      requestAnimationFrame(function() {
+        this.table.classList.add(this.CssClasses.PROGRESS);
+        requestAnimationFrame(this.toggleRows.bind(this, node));
+      }.bind(this));
+      //this.table.classList.add(this.CssClasses.PROGRESS);
+      //this.toggleRows(node);
+    }
+  };
+
+  DataTable.prototype.toggleRows = function(node) {
+    var success = function() {
       var control = node.row.firstChild.firstChild;
       control.classList.toggle(this.CssClasses.ARROW_BOTTOM);
       control.classList.toggle(this.CssClasses.ARROW_RIGHT);
+      this.runEvents = true;
+      this.table.classList.remove(this.CssClasses.PROGRESS);
+    };
+
+    var batch = [],
+      action;
+    if (node.collapse) {
+      crono.start('expandRows');
+      node.collapse = false;
+      action = 'remove';
+      this.selectExpandRows(node, batch);
+
+      crono.stop('expandRows');
+    } else {
+      crono.start('collapseRows');
+      node.collapse = true;
+      this.selectCollapseRows(node, batch);
+      action = 'add';
+      crono.stop('collapseRows');
     }
+    this.animationFrameUpdateTable(batch, action, this.CssClasses.HIDDEN, success);
   };
 
-  DataTable.prototype.collapseRows = function(node) {
+  DataTable.prototype.selectCollapseRows = function(node, batch) {
     if (node.childs) {
       for (var i = 0, l = node.childs.length; i < l; i++) {
-        node.childs[i].row.classList.add(this.CssClasses.HIDDEN);
-        this.collapseRows(node.childs[i]);
+        //node.childs[i].row.classList.add(this.CssClasses.HIDDEN);
+        batch.push(node.childs[i]);
+        this.selectCollapseRows(node.childs[i], batch);
       }
     }
   };
 
-  DataTable.prototype.expandRows = function(node) {
+  DataTable.prototype.selectExpandRows = function(node, batch) {
     if (node.childs) {
       for (var i = 0, l = node.childs.length; i < l; i++) {
-        node.childs[i].row.classList.remove(this.CssClasses.HIDDEN);
+        //node.childs[i].row.classList.remove(this.CssClasses.HIDDEN);
+        batch.push(node.childs[i]);
         if (!node.childs[i].collapse) {
-          this.expandRows(node.childs[i]);
+          this.selectExpandRows(node.childs[i], batch);
         }
       }
     }
+  };
+
+  DataTable.prototype.animationFrameUpdateTable = function(batch, action, cssClass, success) {
+    gr.loop(batch, function(item) {
+      item.row.classList[action](cssClass);
+    }, 16, this, success);
   };
 
 })(window, document, window.gr = window.gr || {});

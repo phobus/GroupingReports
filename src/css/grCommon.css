@@ -48,3 +48,6 @@ a {
   -ms-user-select: none;
   user-select: none;
 }
+.gr-progress, .gr-progress tr {
+  cursor: progress !important;
+}
