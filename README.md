@@ -6,6 +6,10 @@ Group json data by field/s name.
 Creates a data table report with grouped rows and total line
 Virtual columns
 
+## demo
+
+http://groupingreports.herokuapp.com/demo/
+
 ## optimizations:
 
 * table-layout: fixed;
@@ -47,6 +51,4 @@ var config = {
 };
 ```
 
-## demo
 
-http://groupingreports.herokuapp.com/demo/
